@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent, ReactNode, RefObject } from 'react'
 import {
   ArrowDown,
@@ -27,6 +27,7 @@ import './App.css'
 
 type Tool = 'scanner' | 'merge' | 'split' | 'rotate' | 'delete' | 'watermark'
 type InfoPanel = 'about' | 'contact' | 'privacy' | 'help'
+type Language = 'es' | 'en'
 
 type PageImage = {
   id: string
@@ -67,51 +68,228 @@ const defaultAdjustments: Adjustments = {
   margin: 24,
 }
 
-const tools: Array<{
-  id: Tool
-  label: string
-  icon: typeof FileImage
-  description: string
-}> = [
-  {
-    id: 'scanner',
-    label: 'Imagen a PDF',
-    icon: FileImage,
-    description: 'Escanea imagenes, recorta bordes y genera PDF A4.',
+const toolOrder: Tool[] = ['scanner', 'merge', 'split', 'rotate', 'delete', 'watermark']
+
+const toolIcons: Record<Tool, typeof FileImage> = {
+  scanner: FileImage,
+  merge: Layers,
+  split: Scissors,
+  rotate: RotateCw,
+  delete: Eraser,
+  watermark: Stamp,
+}
+
+const toolText: Record<Language, Record<Tool, { label: string; description: string }>> = {
+  es: {
+    scanner: {
+      label: 'Imagen a PDF',
+      description: 'Escanea imagenes, recorta bordes y genera PDF A4.',
+    },
+    merge: {
+      label: 'Unir PDFs',
+      description: 'Combina varios PDFs en un solo archivo.',
+    },
+    split: {
+      label: 'Dividir PDF',
+      description: 'Extrae paginas o rangos concretos.',
+    },
+    rotate: {
+      label: 'Rotar PDF',
+      description: 'Gira todas las paginas de un PDF.',
+    },
+    delete: {
+      label: 'Eliminar paginas',
+      description: 'Quita paginas o rangos de un PDF.',
+    },
+    watermark: {
+      label: 'Marca de agua',
+      description: 'Anade texto suave a todas las paginas.',
+    },
   },
-  {
-    id: 'merge',
-    label: 'Unir PDFs',
-    icon: Layers,
-    description: 'Combina varios PDFs en un solo archivo.',
+  en: {
+    scanner: {
+      label: 'Image to PDF',
+      description: 'Scan images, crop borders and create an A4 PDF.',
+    },
+    merge: {
+      label: 'Merge PDFs',
+      description: 'Combine multiple PDFs into one file.',
+    },
+    split: {
+      label: 'Split PDF',
+      description: 'Extract specific pages or page ranges.',
+    },
+    rotate: {
+      label: 'Rotate PDF',
+      description: 'Rotate every page in a PDF.',
+    },
+    delete: {
+      label: 'Delete pages',
+      description: 'Remove pages or ranges from a PDF.',
+    },
+    watermark: {
+      label: 'Watermark',
+      description: 'Add soft text to every page.',
+    },
   },
-  {
-    id: 'split',
-    label: 'Dividir PDF',
-    icon: Scissors,
-    description: 'Extrae paginas o rangos concretos.',
+}
+
+const uiText = {
+  es: {
+    activeTool: 'Herramienta activa',
+    localPrivate: 'Local y privado',
+    reset: 'Reiniciar',
+    openMenu: 'Abrir menu',
+    about: 'Quienes somos',
+    contact: 'Contacto',
+    privacy: 'Privacidad',
+    help: 'Ayuda',
+    downloadPdf: 'Descargar PDF',
+    generating: 'Generando...',
+    processPdf: 'Generar PDF',
+    processing: 'Procesando...',
+    scannerLoading: 'Generando PDF desde imagenes...',
+    mergeLoading: 'Uniendo PDFs...',
+    splitLoading: 'Extrayendo paginas...',
+    rotateLoading: 'Rotando PDF...',
+    deleteLoading: 'Eliminando paginas...',
+    watermarkLoading: 'Anadiendo marca de agua...',
+    success: 'Archivo generado correctamente.',
+    error: 'No se pudo generar el archivo.',
+    readingPdfs: 'Leyendo PDFs...',
+    pdfsLoaded: 'PDFs cargados.',
+    noValidPdfs: 'No se cargaron PDFs validos.',
+    scanPreparing: 'Preparando tu PDF localmente',
+    scannerKicker: 'Rapido. Simple. Poderoso.',
+    scannerTitleA: 'Convierte imagenes en',
+    scannerTitleB: 'en segundos',
+    scannerText:
+      'Crea documentos PDF profesionales desde tus imagenes, con recorte automatico y procesamiento privado en tu navegador.',
+    uploadImages: 'Arrastra tus imagenes aqui',
+    clickSelect: 'o haz clic para seleccionar',
+    chooseExplorer: 'Elegir desde el explorador',
+    smartScan: 'Escaneo inteligente',
+    smartScanText: 'Detecta bordes y mejora el resultado antes de generar el PDF.',
+    localTitle: '100% local',
+    localText: 'Tus archivos no se suben a ningun servidor.',
+    freeTitle: 'Gratis y sin limites',
+    freeText: 'Sin registros, sin marcas de agua obligatorias.',
+    pdfLocalTool: 'Herramienta PDF local',
+    withoutUpload: 'sin subir archivos',
+    runsBrowser: 'Todo se ejecuta directamente en tu navegador.',
+    privateTitle: 'Privado',
+    privateText: 'El PDF se procesa en tu dispositivo.',
+    fastTitle: 'Rapido',
+    fastText: 'Sin colas, sin servidor y sin esperas innecesarias.',
+    uploadPdf: 'Arrastra tu PDF aqui',
+    page: 'Pagina',
+    pages: 'paginas',
+    pdfPages: 'paginas',
+    privacyFirst: 'Privacidad primero',
+    browserFilesTitle: 'Tus archivos se quedan en tu navegador',
+    browserFilesText:
+      'HermesPDF procesa imagenes y PDFs en local. No necesitas crear cuenta ni subir documentos a un servidor para usar estas herramientas.',
+    viewPrivacy: 'Ver privacidad',
+    stepOneTitle: 'Sube tus archivos',
+    stepOneText: 'Arrastra imagenes o PDFs a la zona de subida de la herramienta que necesites.',
+    stepTwoTitle: 'Ajusta el resultado',
+    stepTwoText: 'Ordena paginas, gira, recorta automaticamente o elige rangos segun el caso.',
+    stepThreeTitle: 'Descarga al instante',
+    stepThreeText: 'Genera el archivo final y descargalo directamente desde tu dispositivo.',
+    seoKicker: 'Herramientas PDF gratis',
+    seoTitle: 'Convertir, unir y editar PDF online',
+    seoText:
+      'Usa HermesPDF para trabajar con documentos PDF desde el navegador: convierte imagenes a PDF, une archivos, divide documentos, rota paginas, elimina hojas y anade marcas de agua sin instalar programas.',
+    pageTitle: 'HermesPDF | Convertir, unir y editar PDF gratis online',
+    pageDescription:
+      'HermesPDF te permite convertir imagenes a PDF, unir, dividir, rotar, eliminar paginas y anadir marcas de agua gratis desde tu navegador.',
   },
-  {
-    id: 'rotate',
-    label: 'Rotar PDF',
-    icon: RotateCw,
-    description: 'Gira todas las paginas de un PDF.',
+  en: {
+    activeTool: 'Active tool',
+    localPrivate: 'Local and private',
+    reset: 'Reset',
+    openMenu: 'Open menu',
+    about: 'About us',
+    contact: 'Contact',
+    privacy: 'Privacy',
+    help: 'Help',
+    downloadPdf: 'Download PDF',
+    generating: 'Generating...',
+    processPdf: 'Create PDF',
+    processing: 'Processing...',
+    scannerLoading: 'Creating PDF from images...',
+    mergeLoading: 'Merging PDFs...',
+    splitLoading: 'Extracting pages...',
+    rotateLoading: 'Rotating PDF...',
+    deleteLoading: 'Deleting pages...',
+    watermarkLoading: 'Adding watermark...',
+    success: 'File created successfully.',
+    error: 'The file could not be created.',
+    readingPdfs: 'Reading PDFs...',
+    pdfsLoaded: 'PDFs loaded.',
+    noValidPdfs: 'No valid PDFs were loaded.',
+    scanPreparing: 'Preparing your PDF locally',
+    scannerKicker: 'Fast. Simple. Powerful.',
+    scannerTitleA: 'Convert images to',
+    scannerTitleB: 'in seconds',
+    scannerText:
+      'Create professional PDF documents from your images, with automatic cropping and private processing in your browser.',
+    uploadImages: 'Drop your images here',
+    clickSelect: 'or click to select',
+    chooseExplorer: 'Choose from file explorer',
+    smartScan: 'Smart scanning',
+    smartScanText: 'Detects borders and improves the result before creating the PDF.',
+    localTitle: '100% local',
+    localText: 'Your files are not uploaded to any server.',
+    freeTitle: 'Free and unlimited',
+    freeText: 'No signups, no mandatory watermarks.',
+    pdfLocalTool: 'Local PDF tool',
+    withoutUpload: 'without uploading files',
+    runsBrowser: 'Everything runs directly in your browser.',
+    privateTitle: 'Private',
+    privateText: 'The PDF is processed on your device.',
+    fastTitle: 'Fast',
+    fastText: 'No queues, no server and no unnecessary waiting.',
+    uploadPdf: 'Drop your PDF here',
+    page: 'Page',
+    pages: 'pages',
+    pdfPages: 'pages',
+    privacyFirst: 'Privacy first',
+    browserFilesTitle: 'Your files stay in your browser',
+    browserFilesText:
+      'HermesPDF processes images and PDFs locally. You do not need an account or a server upload to use these tools.',
+    viewPrivacy: 'View privacy',
+    stepOneTitle: 'Upload your files',
+    stepOneText: 'Drop images or PDFs into the upload area for the tool you need.',
+    stepTwoTitle: 'Adjust the result',
+    stepTwoText: 'Reorder pages, rotate, crop automatically or choose ranges when needed.',
+    stepThreeTitle: 'Download instantly',
+    stepThreeText: 'Create the final file and download it directly from your device.',
+    seoKicker: 'Free PDF tools',
+    seoTitle: 'Convert, merge and edit PDF online',
+    seoText:
+      'Use HermesPDF to work with PDF documents from your browser: convert images to PDF, merge files, split documents, rotate pages, delete sheets and add watermarks without installing software.',
+    pageTitle: 'HermesPDF | Convert, merge and edit PDF online for free',
+    pageDescription:
+      'HermesPDF lets you convert images to PDF, merge, split, rotate, delete pages and add watermarks for free from your browser.',
   },
-  {
-    id: 'delete',
-    label: 'Eliminar paginas',
-    icon: Eraser,
-    description: 'Quita paginas o rangos de un PDF.',
-  },
-  {
-    id: 'watermark',
-    label: 'Marca de agua',
-    icon: Stamp,
-    description: 'Anade texto suave a todas las paginas.',
-  },
-]
+}
+
+type UiText = typeof uiText.es
+type ToolMeta = ReturnType<typeof getTools>[number]
+
+function getTools(language: Language) {
+  return toolOrder.map((id) => ({
+    id,
+    icon: toolIcons[id],
+    ...toolText[language][id],
+  }))
+}
 
 function App() {
+  const [language] = useState<Language>(() => detectLanguage())
+  const text = uiText[language]
+  const localizedTools = useMemo(() => getTools(language), [language])
   const [activeTool, setActiveTool] = useState<Tool>('scanner')
   const [images, setImages] = useState<PageImage[]>([])
   const [pdfFiles, setPdfFiles] = useState<PdfFile[]>([])
@@ -132,10 +310,19 @@ function App() {
     [images],
   )
 
-  const activeToolMeta = tools.find((tool) => tool.id === activeTool) ?? tools[0]
+  const activeToolMeta =
+    localizedTools.find((tool) => tool.id === activeTool) ?? localizedTools[0]
   const isEmptyStart =
     (activeTool === 'scanner' && images.length === 0) ||
     (activeTool !== 'scanner' && pdfFiles.length === 0)
+
+  useEffect(() => {
+    document.documentElement.lang = language
+    document.title = text.pageTitle
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute('content', text.pageDescription)
+  }, [language, text.pageDescription, text.pageTitle])
 
   const addImages = (fileList: FileList | null) => {
     if (!fileList) return
@@ -155,7 +342,7 @@ function App() {
 
   const addPdfFiles = async (fileList: FileList | null) => {
     if (!fileList) return
-    setStatus('Leyendo PDFs...')
+    setStatus(text.readingPdfs)
 
     const files = Array.from(fileList).filter(
       (file) => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'),
@@ -175,12 +362,12 @@ function App() {
           size: file.size,
         })
       } catch {
-        setStatus(`No se pudo leer ${file.name}`)
+        setStatus(language === 'es' ? `No se pudo leer ${file.name}` : `Could not read ${file.name}`)
       }
     }
 
     setPdfFiles((current) => [...current, ...nextFiles])
-    setStatus(nextFiles.length > 0 ? 'PDFs cargados.' : 'No se cargaron PDFs validos.')
+    setStatus(nextFiles.length > 0 ? text.pdfsLoaded : text.noValidPdfs)
   }
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -266,7 +453,7 @@ function App() {
 
   const exportScannerPdf = async () => {
     if (images.length === 0) return
-    await runExport('Generando PDF desde imagenes...', async () => {
+    await runExport(text.scannerLoading, async () => {
       const pdf = await PDFDocument.create()
 
       for (const image of images) {
@@ -300,7 +487,7 @@ function App() {
 
   const mergePdfs = async () => {
     if (pdfFiles.length < 2) return
-    await runExport('Uniendo PDFs...', async () => {
+    await runExport(text.mergeLoading, async () => {
       const merged = await PDFDocument.create()
 
       for (const item of pdfFiles) {
@@ -318,7 +505,7 @@ function App() {
   const splitPdf = async () => {
     const file = pdfFiles[0]
     if (!file) return
-    await runExport('Extrayendo paginas...', async () => {
+    await runExport(text.splitLoading, async () => {
       const source = await PDFDocument.load(await file.file.arrayBuffer(), {
         ignoreEncryption: true,
       })
@@ -333,7 +520,7 @@ function App() {
   const rotatePdf = async () => {
     const file = pdfFiles[0]
     if (!file) return
-    await runExport('Rotando PDF...', async () => {
+    await runExport(text.rotateLoading, async () => {
       const pdf = await PDFDocument.load(await file.file.arrayBuffer(), {
         ignoreEncryption: true,
       })
@@ -350,7 +537,7 @@ function App() {
   const deletePages = async () => {
     const file = pdfFiles[0]
     if (!file) return
-    await runExport('Eliminando paginas...', async () => {
+    await runExport(text.deleteLoading, async () => {
       const source = await PDFDocument.load(await file.file.arrayBuffer(), {
         ignoreEncryption: true,
       })
@@ -358,7 +545,9 @@ function App() {
       const pagesToKeep = source.getPageIndices().filter((index) => !selectedPages.has(index))
 
       if (pagesToKeep.length === 0) {
-        throw new Error('No puedes eliminar todas las paginas.')
+        throw new Error(
+          language === 'es' ? 'No puedes eliminar todas las paginas.' : 'You cannot delete every page.',
+        )
       }
 
       const output = await PDFDocument.create()
@@ -371,7 +560,7 @@ function App() {
   const addWatermark = async () => {
     const file = pdfFiles[0]
     if (!file || watermark.trim().length === 0) return
-    await runExport('Anadiendo marca de agua...', async () => {
+    await runExport(text.watermarkLoading, async () => {
       const pdf = await PDFDocument.load(await file.file.arrayBuffer(), {
         ignoreEncryption: true,
       })
@@ -407,10 +596,10 @@ function App() {
     try {
       await action()
       await waitForMinimumDuration(startedAt, 1600)
-      setStatus('Archivo generado correctamente.')
+      setStatus(text.success)
     } catch (error) {
       await waitForMinimumDuration(startedAt, 1600)
-      setStatus(error instanceof Error ? error.message : 'No se pudo generar el archivo.')
+      setStatus(error instanceof Error ? error.message : text.error)
     } finally {
       setIsExporting(false)
     }
@@ -426,7 +615,7 @@ function App() {
           disabled={images.length === 0 || isExporting}
         >
           <Download size={18} />
-          {isExporting ? 'Generando...' : 'Descargar PDF'}
+          {isExporting ? text.generating : text.downloadPdf}
         </button>
       )
     }
@@ -452,7 +641,7 @@ function App() {
         disabled={disabled}
       >
         <Download size={18} />
-        {isExporting ? 'Procesando...' : 'Generar PDF'}
+        {isExporting ? text.processing : text.processPdf}
       </button>
     )
   }
@@ -469,7 +658,7 @@ function App() {
             <button
               className="menu-button"
               type="button"
-              aria-label="Abrir menu"
+              aria-label={text.openMenu}
               aria-expanded={isMenuOpen}
               onClick={() => setIsMenuOpen((open) => !open)}
             >
@@ -478,16 +667,16 @@ function App() {
             {isMenuOpen && (
               <div className="menu-popover">
                 <button type="button" onClick={() => openInfoPanel('about')}>
-                  Quienes somos
+                  {text.about}
                 </button>
                 <button type="button" onClick={() => openInfoPanel('contact')}>
-                  Contacto
+                  {text.contact}
                 </button>
                 <button type="button" onClick={() => openInfoPanel('privacy')}>
-                  Privacidad
+                  {text.privacy}
                 </button>
                 <button type="button" onClick={() => openInfoPanel('help')}>
-                  Ayuda
+                  {text.help}
                 </button>
               </div>
             )}
@@ -496,15 +685,15 @@ function App() {
 
         <header className="topbar">
           <div>
-            <p className="eyebrow">Herramienta activa</p>
+            <p className="eyebrow">{text.activeTool}</p>
             <h1>{activeToolMeta.label}</h1>
           </div>
           <div className="topbar-actions">
             <div className="privacy-pill">
               <ShieldCheck size={16} />
-              Local y privado
+              {text.localPrivate}
             </div>
-            <button className="icon-button" type="button" onClick={resetAll} title="Reiniciar">
+            <button className="icon-button" type="button" onClick={resetAll} title={text.reset}>
               <RefreshCw size={19} />
             </button>
             {renderToolAction()}
@@ -512,7 +701,7 @@ function App() {
         </header>
 
         <nav className="tool-tabs" aria-label="Herramientas PDF">
-          {tools.map((tool) => {
+          {localizedTools.map((tool) => {
             const Icon = tool.icon
             return (
               <button
@@ -545,6 +734,7 @@ function App() {
                 onDragOver={() => setIsDragging(true)}
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={handleImageDrop}
+                text={text}
               />
             ) : (
               <PdfControls
@@ -562,13 +752,19 @@ function App() {
                 onPageSelectionChange={setPageSelection}
                 onRotationChange={setRotation}
                 onWatermarkChange={setWatermark}
+                text={text}
               />
             )}
             {status && <p className="status-line">{status}</p>}
           </aside>
 
           <section className="pages-area" aria-label="Area de trabajo">
-            {isExporting && <ScanOverlay message={status || 'Procesando archivo...'} />}
+            {isExporting && (
+              <ScanOverlay
+                message={status || text.processing}
+                preparingMessage={text.scanPreparing}
+              />
+            )}
             {activeTool === 'scanner' ? (
               <ScannerWorkspace
                 images={images}
@@ -583,6 +779,8 @@ function App() {
                 onRemove={removeImage}
                 onRotate={rotateImage}
                 onSelectTool={setActiveTool}
+                text={text}
+                tools={localizedTools}
               />
             ) : (
               <PdfWorkspace
@@ -599,15 +797,23 @@ function App() {
                   setPdfFiles((current) => current.filter((file) => file.id !== id))
                 }
                 onSelectTool={setActiveTool}
+                text={text}
+                tools={localizedTools}
               />
             )}
           </section>
         </section>
 
-        <TrustAndHowItWorks onOpenPrivacy={() => openInfoPanel('privacy')} />
+        <TrustAndHowItWorks
+          language={language}
+          text={text}
+          onOpenPrivacy={() => openInfoPanel('privacy')}
+        />
       </section>
 
-      {infoPanel && <InfoModal panel={infoPanel} onClose={() => setInfoPanel(null)} />}
+      {infoPanel && (
+        <InfoModal panel={infoPanel} language={language} onClose={() => setInfoPanel(null)} />
+      )}
     </main>
   )
 
@@ -617,72 +823,109 @@ function App() {
   }
 }
 
-function TrustAndHowItWorks({ onOpenPrivacy }: { onOpenPrivacy: () => void }) {
+function TrustAndHowItWorks({
+  language,
+  text,
+  onOpenPrivacy,
+}: {
+  language: Language
+  text: UiText
+  onOpenPrivacy: () => void
+}) {
+  const seoTopics = {
+    es: [
+      {
+        title: 'Convertir imagenes a PDF',
+        body: 'Crea un PDF a partir de imagenes JPG, PNG o WEBP con recorte automatico, ajuste de contraste y modo escaneado.',
+      },
+      {
+        title: 'Unir PDF gratis',
+        body: 'Combina varios archivos PDF en un unico documento manteniendo el orden que elijas antes de descargarlo.',
+      },
+      {
+        title: 'Dividir PDF online',
+        body: 'Extrae paginas concretas o rangos como 1, 3 o 5-8 para crear un nuevo PDF solo con lo que necesitas.',
+      },
+      {
+        title: 'Rotar y eliminar paginas PDF',
+        body: 'Gira paginas completas, elimina hojas innecesarias y deja el documento listo para compartir o archivar.',
+      },
+      {
+        title: 'Marca de agua PDF',
+        body: 'Anade una marca de agua de texto a todas las paginas de un PDF para proteger borradores, informes o documentos internos.',
+      },
+      {
+        title: 'PDF privado sin subir archivos',
+        body: 'Las operaciones se realizan en tu dispositivo, una ventaja importante si trabajas con documentos personales o profesionales.',
+      },
+    ],
+    en: [
+      {
+        title: 'Convert images to PDF',
+        body: 'Create a PDF from JPG, PNG or WEBP images with automatic cropping, contrast adjustment and scan mode.',
+      },
+      {
+        title: 'Merge PDF for free',
+        body: 'Combine several PDF files into a single document while keeping the order you choose before downloading.',
+      },
+      {
+        title: 'Split PDF online',
+        body: 'Extract specific pages or ranges such as 1, 3 or 5-8 to create a new PDF with only what you need.',
+      },
+      {
+        title: 'Rotate and delete PDF pages',
+        body: 'Rotate full pages, remove unnecessary sheets and leave the document ready to share or archive.',
+      },
+      {
+        title: 'PDF watermark',
+        body: 'Add a text watermark to every page in a PDF to protect drafts, reports or internal documents.',
+      },
+      {
+        title: 'Private PDF tools without uploads',
+        body: 'Operations run on your device, which helps when working with personal or professional documents.',
+      },
+    ],
+  }
+
   return (
     <section className="info-sections" aria-label="Informacion de HermesPDF">
       <div className="info-band">
         <div>
-          <p className="hero-kicker">Privacidad primero</p>
-          <h2>Tus archivos se quedan en tu navegador</h2>
-          <p>
-            HermesPDF procesa imagenes y PDFs en local. No necesitas crear cuenta ni subir
-            documentos a un servidor para usar estas herramientas.
-          </p>
+          <p className="hero-kicker">{text.privacyFirst}</p>
+          <h2>{text.browserFilesTitle}</h2>
+          <p>{text.browserFilesText}</p>
         </div>
         <button className="secondary-button" type="button" onClick={onOpenPrivacy}>
           <Lock size={18} />
-          Ver privacidad
+          {text.viewPrivacy}
         </button>
       </div>
 
       <div className="how-grid">
-        <InfoStep number="1" title="Sube tus archivos">
-          Arrastra imagenes o PDFs a la zona de subida de la herramienta que necesites.
+        <InfoStep number="1" title={text.stepOneTitle}>
+          {text.stepOneText}
         </InfoStep>
-        <InfoStep number="2" title="Ajusta el resultado">
-          Ordena paginas, gira, recorta automaticamente o elige rangos segun el caso.
+        <InfoStep number="2" title={text.stepTwoTitle}>
+          {text.stepTwoText}
         </InfoStep>
-        <InfoStep number="3" title="Descarga al instante">
-          Genera el archivo final y descargalo directamente desde tu dispositivo.
+        <InfoStep number="3" title={text.stepThreeTitle}>
+          {text.stepThreeText}
         </InfoStep>
       </div>
 
       <section className="seo-panel" aria-labelledby="seo-title">
         <div className="seo-intro">
-          <p className="hero-kicker">Herramientas PDF gratis</p>
-          <h2 id="seo-title">Convertir, unir y editar PDF online</h2>
-          <p>
-            Usa HermesPDF para trabajar con documentos PDF desde el navegador:
-            convierte imagenes a PDF, une archivos, divide documentos, rota paginas,
-            elimina hojas y anade marcas de agua sin instalar programas.
-          </p>
+          <p className="hero-kicker">{text.seoKicker}</p>
+          <h2 id="seo-title">{text.seoTitle}</h2>
+          <p>{text.seoText}</p>
         </div>
 
         <div className="seo-grid">
-          <SeoTopic title="Convertir imagenes a PDF">
-            Crea un PDF a partir de imagenes JPG, PNG o WEBP con recorte automatico,
-            ajuste de contraste y modo escaneado.
-          </SeoTopic>
-          <SeoTopic title="Unir PDF gratis">
-            Combina varios archivos PDF en un unico documento manteniendo el orden que
-            elijas antes de descargarlo.
-          </SeoTopic>
-          <SeoTopic title="Dividir PDF online">
-            Extrae paginas concretas o rangos como 1, 3 o 5-8 para crear un nuevo PDF
-            solo con lo que necesitas.
-          </SeoTopic>
-          <SeoTopic title="Rotar y eliminar paginas PDF">
-            Gira paginas completas, elimina hojas innecesarias y deja el documento listo
-            para compartir o archivar.
-          </SeoTopic>
-          <SeoTopic title="Marca de agua PDF">
-            Anade una marca de agua de texto a todas las paginas de un PDF para proteger
-            borradores, informes o documentos internos.
-          </SeoTopic>
-          <SeoTopic title="PDF privado sin subir archivos">
-            Las operaciones se realizan en tu dispositivo, una ventaja importante si
-            trabajas con documentos personales o profesionales.
-          </SeoTopic>
+          {seoTopics[language].map((topic) => (
+            <SeoTopic key={topic.title} title={topic.title}>
+              {topic.body}
+            </SeoTopic>
+          ))}
         </div>
       </section>
     </section>
@@ -716,42 +959,86 @@ function InfoStep({
   )
 }
 
-function InfoModal({ panel, onClose }: { panel: InfoPanel; onClose: () => void }) {
+function InfoModal({
+  panel,
+  language,
+  onClose,
+}: {
+  panel: InfoPanel
+  language: Language
+  onClose: () => void
+}) {
   const content = {
-    about: {
-      icon: <ShieldCheck size={22} />,
-      title: 'Quienes somos',
-      body: [
-        'HermesPDF es una herramienta web pensada para trabajar con PDFs de forma rapida, sencilla y privada.',
-        'La idea es ofrecer utilidades practicas para convertir imagenes, unir, dividir, rotar y marcar PDFs sin depender de servidores ni cuentas de usuario.',
-      ],
+    es: {
+      about: {
+        icon: <ShieldCheck size={22} />,
+        title: 'Quienes somos',
+        body: [
+          'HermesPDF es una herramienta web pensada para trabajar con PDFs de forma rapida, sencilla y privada.',
+          'La idea es ofrecer utilidades practicas para convertir imagenes, unir, dividir, rotar y marcar PDFs sin depender de servidores ni cuentas de usuario.',
+        ],
+      },
+      contact: {
+        icon: <Mail size={22} />,
+        title: 'Contacto',
+        body: [
+          'Este bloque quedara preparado para anadir un correo de soporte o un formulario cuando publiques la web.',
+          'De momento puedes usarlo como seccion informativa y cambiar el texto final antes del despliegue.',
+        ],
+      },
+      privacy: {
+        icon: <Lock size={22} />,
+        title: 'Privacidad',
+        body: [
+          'Los archivos se procesan en el navegador. HermesPDF no sube tus imagenes ni PDFs a un servidor para generar los documentos.',
+          'Al cerrar o recargar la pagina, los archivos cargados dejan de estar disponibles en la sesion actual.',
+        ],
+      },
+      help: {
+        icon: <HelpCircle size={22} />,
+        title: 'Ayuda',
+        body: [
+          'Elige una herramienta, sube o arrastra tus archivos y pulsa el boton de generar cuando este disponible.',
+          'Para rangos de paginas puedes escribir valores como 1,3,5-8. En unir PDFs, el orden de la lista sera el orden del archivo final.',
+        ],
+      },
     },
-    contact: {
-      icon: <Mail size={22} />,
-      title: 'Contacto',
-      body: [
-        'Este bloque quedara preparado para anadir un correo de soporte o un formulario cuando publiques la web.',
-        'De momento puedes usarlo como seccion informativa y cambiar el texto final antes del despliegue.',
-      ],
+    en: {
+      about: {
+        icon: <ShieldCheck size={22} />,
+        title: 'About us',
+        body: [
+          'HermesPDF is a web tool designed to work with PDFs quickly, simply and privately.',
+          'It offers practical utilities to convert images, merge, split, rotate and watermark PDFs without servers or user accounts.',
+        ],
+      },
+      contact: {
+        icon: <Mail size={22} />,
+        title: 'Contact',
+        body: [
+          'This section is ready for a support email or contact form when the site grows.',
+          'For now it works as an information panel that can be adjusted before a more formal launch.',
+        ],
+      },
+      privacy: {
+        icon: <Lock size={22} />,
+        title: 'Privacy',
+        body: [
+          'Files are processed in the browser. HermesPDF does not upload your images or PDFs to a server to create documents.',
+          'When you close or reload the page, loaded files are no longer available in the current session.',
+        ],
+      },
+      help: {
+        icon: <HelpCircle size={22} />,
+        title: 'Help',
+        body: [
+          'Choose a tool, upload or drop your files and press the generate button when it is available.',
+          'For page ranges, use values such as 1,3,5-8. When merging PDFs, the list order will be the order of the final file.',
+        ],
+      },
     },
-    privacy: {
-      icon: <Lock size={22} />,
-      title: 'Privacidad',
-      body: [
-        'Los archivos se procesan en el navegador. HermesPDF no sube tus imagenes ni PDFs a un servidor para generar los documentos.',
-        'Al cerrar o recargar la pagina, los archivos cargados dejan de estar disponibles en la sesion actual.',
-      ],
-    },
-    help: {
-      icon: <HelpCircle size={22} />,
-      title: 'Ayuda',
-      body: [
-        'Elige una herramienta, sube o arrastra tus archivos y pulsa el boton de generar cuando este disponible.',
-        'Para rangos de paginas puedes escribir valores como 1,3,5-8. En unir PDFs, el orden de la lista sera el orden del archivo final.',
-      ],
-    },
-  } satisfies Record<InfoPanel, { icon: ReactNode; title: string; body: string[] }>
-  const item = content[panel]
+  } satisfies Record<Language, Record<InfoPanel, { icon: ReactNode; title: string; body: string[] }>>
+  const item = content[language][panel]
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="info-title">
@@ -761,7 +1048,12 @@ function InfoModal({ panel, onClose }: { panel: InfoPanel; onClose: () => void }
             <span>{item.icon}</span>
             <h2 id="info-title">{item.title}</h2>
           </div>
-          <button className="icon-button" type="button" onClick={onClose} aria-label="Cerrar">
+          <button
+            className="icon-button"
+            type="button"
+            onClick={onClose}
+            aria-label={language === 'es' ? 'Cerrar' : 'Close'}
+          >
             <X size={18} />
           </button>
         </header>
@@ -775,7 +1067,13 @@ function InfoModal({ panel, onClose }: { panel: InfoPanel; onClose: () => void }
   )
 }
 
-function ScanOverlay({ message }: { message: string }) {
+function ScanOverlay({
+  message,
+  preparingMessage,
+}: {
+  message: string
+  preparingMessage: string
+}) {
   return (
     <div className="scan-overlay" role="status" aria-live="polite">
       <div className="scan-card">
@@ -786,7 +1084,7 @@ function ScanOverlay({ message }: { message: string }) {
           <div className="paper-row short"></div>
         </div>
         <strong>{message}</strong>
-        <span>Preparando tu PDF localmente</span>
+        <span>{preparingMessage}</span>
       </div>
     </div>
   )
@@ -798,6 +1096,7 @@ function ScannerControls({
   inputRef,
   imageCount,
   totalSize,
+  text,
   onChange,
   onFileChange,
   onDragOver,
@@ -809,6 +1108,7 @@ function ScannerControls({
   inputRef: RefObject<HTMLInputElement | null>
   imageCount: number
   totalSize: number
+  text: UiText
   onChange: (adjustments: Adjustments) => void
   onFileChange: (event: ChangeEvent<HTMLInputElement>) => void
   onDragOver: () => void
@@ -828,33 +1128,39 @@ function ScannerControls({
       >
         <input ref={inputRef} type="file" accept="image/*" multiple onChange={onFileChange} />
         <ImagePlus size={30} />
-        <span>Subir imagenes</span>
-        <small>JPG, PNG o WebP. El recorte y el PDF se hacen en tu navegador.</small>
+        <span>{languageText(text, 'Subir imagenes', 'Upload images')}</span>
+        <small>
+          {languageText(
+            text,
+            'JPG, PNG o WebP. El recorte y el PDF se hacen en tu navegador.',
+            'JPG, PNG or WebP. Cropping and PDF creation happen in your browser.',
+          )}
+        </small>
       </label>
 
       <div className="control-group">
         <div className="control-heading">
           <FileImage size={18} />
-          <span>Ajustes de escaner</span>
+          <span>{languageText(text, 'Ajustes de escaner', 'Scanner settings')}</span>
         </div>
 
         <Toggle
-          label="Recorte automatico"
+          label={languageText(text, 'Recorte automatico', 'Automatic crop')}
           checked={adjustments.autoCrop}
           onChange={(autoCrop) => onChange({ ...adjustments, autoCrop })}
         />
         <Toggle
-          label="Modo documento"
+          label={languageText(text, 'Modo documento', 'Document mode')}
           checked={adjustments.scanMode}
           onChange={(scanMode) => onChange({ ...adjustments, scanMode })}
         />
         <Toggle
-          label="Blanco y negro"
+          label={languageText(text, 'Blanco y negro', 'Black and white')}
           checked={adjustments.grayscale}
           onChange={(grayscale) => onChange({ ...adjustments, grayscale })}
         />
         <Slider
-          label="Brillo"
+          label={languageText(text, 'Brillo', 'Brightness')}
           value={adjustments.brightness}
           min={70}
           max={160}
@@ -862,7 +1168,7 @@ function ScannerControls({
           onChange={(brightness) => onChange({ ...adjustments, brightness })}
         />
         <Slider
-          label="Contraste"
+          label={languageText(text, 'Contraste', 'Contrast')}
           value={adjustments.contrast}
           min={80}
           max={190}
@@ -870,7 +1176,7 @@ function ScannerControls({
           onChange={(contrast) => onChange({ ...adjustments, contrast })}
         />
         <Slider
-          label="Margen PDF"
+          label={languageText(text, 'Margen PDF', 'PDF margin')}
           value={adjustments.margin}
           min={0}
           max={64}
@@ -880,7 +1186,9 @@ function ScannerControls({
       </div>
 
       <div className="stats-strip">
-        <span>{imageCount} paginas</span>
+        <span>
+          {imageCount} {text.pages}
+        </span>
         <span>{formatBytes(totalSize)}</span>
       </div>
     </>
@@ -895,6 +1203,7 @@ function PdfControls({
   pageSelection,
   rotation,
   watermark,
+  text,
   onFileChange,
   onDragOver,
   onDragLeave,
@@ -910,6 +1219,7 @@ function PdfControls({
   pageSelection: string
   rotation: number
   watermark: string
+  text: UiText
   onFileChange: (event: ChangeEvent<HTMLInputElement>) => void
   onDragOver: () => void
   onDragLeave: () => void
@@ -940,24 +1250,34 @@ function PdfControls({
           onChange={onFileChange}
         />
         <Files size={30} />
-        <span>Subir PDF{multiple ? 's' : ''}</span>
+        <span>{languageText(text, `Subir PDF${multiple ? 's' : ''}`, `Upload PDF${multiple ? 's' : ''}`)}</span>
         <small>
           {multiple
-            ? 'El orden de la lista sera el orden del PDF final.'
-            : 'Usaremos el primer PDF cargado para esta herramienta.'}
+            ? languageText(
+                text,
+                'El orden de la lista sera el orden del PDF final.',
+                'The list order will be the order of the final PDF.',
+              )
+            : languageText(
+                text,
+                'Usaremos el primer PDF cargado para esta herramienta.',
+                'The first loaded PDF will be used for this tool.',
+              )}
         </small>
       </label>
 
       <div className="control-group">
         <div className="control-heading">
           <Files size={18} />
-          <span>Ajustes</span>
+          <span>{languageText(text, 'Ajustes', 'Settings')}</span>
         </div>
 
         {(activeTool === 'split' || activeTool === 'delete') && (
           <label className="text-row">
             <span>
-              {activeTool === 'split' ? 'Paginas a extraer' : 'Paginas a eliminar'}
+              {activeTool === 'split'
+                ? languageText(text, 'Paginas a extraer', 'Pages to extract')
+                : languageText(text, 'Paginas a eliminar', 'Pages to delete')}
             </span>
             <input
               type="text"
@@ -966,25 +1286,31 @@ function PdfControls({
               onChange={(event) => onPageSelectionChange(event.target.value)}
             />
             <small>
-              {firstFile ? `Este PDF tiene ${firstFile.pages} paginas.` : 'Ejemplo: 1,3,5-8'}
+              {firstFile
+                ? languageText(
+                    text,
+                    `Este PDF tiene ${firstFile.pages} paginas.`,
+                    `This PDF has ${firstFile.pages} pages.`,
+                  )
+                : languageText(text, 'Ejemplo: 1,3,5-8', 'Example: 1,3,5-8')}
             </small>
           </label>
         )}
 
         {activeTool === 'rotate' && (
           <label className="select-row">
-            <span>Rotacion</span>
+            <span>{languageText(text, 'Rotacion', 'Rotation')}</span>
             <select value={rotation} onChange={(event) => onRotationChange(Number(event.target.value))}>
-              <option value={90}>90 grados</option>
-              <option value={180}>180 grados</option>
-              <option value={270}>270 grados</option>
+              <option value={90}>{languageText(text, '90 grados', '90 degrees')}</option>
+              <option value={180}>{languageText(text, '180 grados', '180 degrees')}</option>
+              <option value={270}>{languageText(text, '270 grados', '270 degrees')}</option>
             </select>
           </label>
         )}
 
         {activeTool === 'watermark' && (
           <label className="text-row">
-            <span>Texto de marca</span>
+            <span>{languageText(text, 'Texto de marca', 'Watermark text')}</span>
             <input
               type="text"
               value={watermark}
@@ -996,8 +1322,12 @@ function PdfControls({
       </div>
 
       <div className="stats-strip">
-        <span>{files.length} PDF{files.length === 1 ? '' : 's'}</span>
-        <span>{files.reduce((total, file) => total + file.pages, 0)} paginas</span>
+        <span>
+          {files.length} PDF{files.length === 1 ? '' : 's'}
+        </span>
+        <span>
+          {files.reduce((total, file) => total + file.pages, 0)} {text.pdfPages}
+        </span>
       </div>
     </>
   )
@@ -1008,6 +1338,8 @@ function ScannerWorkspace({
   adjustments,
   inputRef,
   isDragging,
+  text,
+  tools,
   onDragLeave,
   onDragOver,
   onDrop,
@@ -1021,6 +1353,8 @@ function ScannerWorkspace({
   adjustments: Adjustments
   inputRef: RefObject<HTMLInputElement | null>
   isDragging: boolean
+  text: UiText
+  tools: ToolMeta[]
   onDragLeave: () => void
   onDragOver: () => void
   onDrop: (event: DragEvent<HTMLLabelElement>) => void
@@ -1035,23 +1369,20 @@ function ScannerWorkspace({
       <div className="empty-state empty-start">
         <div className="hero-start">
           <div className="hero-copy">
-            <p className="hero-kicker">Rapido. Simple. Poderoso.</p>
+            <p className="hero-kicker">{text.scannerKicker}</p>
             <h2>
-              Convierte imagenes en <span>PDF</span> en segundos
+              {text.scannerTitleA} <span>PDF</span> {text.scannerTitleB}
             </h2>
-            <p>
-              Crea documentos PDF profesionales desde tus imagenes, con recorte
-              automatico y procesamiento privado en tu navegador.
-            </p>
+            <p>{text.scannerText}</p>
             <div className="benefit-list">
-              <Benefit icon={<ScanLine size={16} />} title="Escaneo inteligente">
-                Detecta bordes y mejora el resultado antes de generar el PDF.
+              <Benefit icon={<ScanLine size={16} />} title={text.smartScan}>
+                {text.smartScanText}
               </Benefit>
-              <Benefit icon={<ShieldCheck size={16} />} title="100% local">
-                Tus archivos no se suben a ningun servidor.
+              <Benefit icon={<ShieldCheck size={16} />} title={text.localTitle}>
+                {text.localText}
               </Benefit>
-              <Benefit icon={<FileImage size={16} />} title="Gratis y sin limites">
-                Sin registros, sin marcas de agua obligatorias.
+              <Benefit icon={<FileImage size={16} />} title={text.freeTitle}>
+                {text.freeText}
               </Benefit>
             </div>
           </div>
@@ -1068,8 +1399,8 @@ function ScannerWorkspace({
             >
               <input type="file" accept="image/*" multiple onChange={onFileChange} />
               <ImagePlus size={44} />
-              <span>Arrastra tus imagenes aqui</span>
-              <small>o haz clic para seleccionar</small>
+              <span>{text.uploadImages}</span>
+              <small>{text.clickSelect}</small>
               <div className="format-pills">
                 <span>JPG</span>
                 <span>PNG</span>
@@ -1077,12 +1408,12 @@ function ScannerWorkspace({
               </div>
             </label>
             <button className="text-button" type="button" onClick={() => inputRef.current?.click()}>
-              Elegir desde el explorador
+              {text.chooseExplorer}
             </button>
           </div>
         </div>
 
-        <QuickToolCards onSelectTool={onSelectTool} />
+        <QuickToolCards tools={tools} onSelectTool={onSelectTool} />
       </div>
     )
   }
@@ -1103,29 +1434,31 @@ function ScannerWorkspace({
           </div>
           <div className="page-meta">
             <div>
-              <span className="page-number">Pagina {index + 1}</span>
+              <span className="page-number">
+                {text.page} {index + 1}
+              </span>
               <strong>{image.name}</strong>
             </div>
             <div className="page-actions">
               <IconAction
-                label="Subir pagina"
+                label={languageText(text, 'Subir pagina', 'Move page up')}
                 disabled={index === 0}
                 onClick={() => onMove(image.id, -1)}
                 icon={<ArrowUp size={17} />}
               />
               <IconAction
-                label="Bajar pagina"
+                label={languageText(text, 'Bajar pagina', 'Move page down')}
                 disabled={index === images.length - 1}
                 onClick={() => onMove(image.id, 1)}
                 icon={<ArrowDown size={17} />}
               />
               <IconAction
-                label="Girar"
+                label={languageText(text, 'Girar', 'Rotate')}
                 onClick={() => onRotate(image.id)}
                 icon={<RotateCw size={17} />}
               />
               <IconAction
-                label="Eliminar"
+                label={languageText(text, 'Eliminar', 'Delete')}
                 danger
                 onClick={() => onRemove(image.id)}
                 icon={<Trash2 size={17} />}
@@ -1143,6 +1476,8 @@ function PdfWorkspace({
   files,
   inputRef,
   isDragging,
+  text,
+  tools,
   onDragLeave,
   onDragOver,
   onDrop,
@@ -1155,6 +1490,8 @@ function PdfWorkspace({
   files: PdfFile[]
   inputRef: RefObject<HTMLInputElement | null>
   isDragging: boolean
+  text: UiText
+  tools: ToolMeta[]
   onDragLeave: () => void
   onDragOver: () => void
   onDrop: (event: DragEvent<HTMLLabelElement>) => void
@@ -1171,17 +1508,19 @@ function PdfWorkspace({
       <div className="empty-state empty-start">
         <div className="hero-start">
           <div className="hero-copy">
-            <p className="hero-kicker">Herramienta PDF local</p>
+            <p className="hero-kicker">{text.pdfLocalTool}</p>
             <h2>
-              {tool.label} <span>sin subir archivos</span>
+              {tool.label} <span>{text.withoutUpload}</span>
             </h2>
-            <p>{tool.description} Todo se ejecuta directamente en tu navegador.</p>
+            <p>
+              {tool.description} {text.runsBrowser}
+            </p>
             <div className="benefit-list">
-              <Benefit icon={<ShieldCheck size={16} />} title="Privado">
-                El PDF se procesa en tu dispositivo.
+              <Benefit icon={<ShieldCheck size={16} />} title={text.privateTitle}>
+                {text.privateText}
               </Benefit>
-              <Benefit icon={<Files size={16} />} title="Rapido">
-                Sin colas, sin servidor y sin esperas innecesarias.
+              <Benefit icon={<Files size={16} />} title={text.fastTitle}>
+                {text.fastText}
               </Benefit>
             </div>
           </div>
@@ -1203,19 +1542,19 @@ function PdfWorkspace({
                 onChange={onFileChange}
               />
               <ToolIcon size={44} />
-              <span>Arrastra tu PDF aqui</span>
-              <small>o haz clic para seleccionar</small>
+              <span>{text.uploadPdf}</span>
+              <small>{text.clickSelect}</small>
               <div className="format-pills">
                 <span>PDF</span>
               </div>
             </label>
             <button className="text-button" type="button" onClick={() => inputRef.current?.click()}>
-              Elegir desde el explorador
+              {text.chooseExplorer}
             </button>
           </div>
         </div>
 
-        <QuickToolCards onSelectTool={onSelectTool} />
+        <QuickToolCards tools={tools} onSelectTool={onSelectTool} />
       </div>
     )
   }
@@ -1230,24 +1569,24 @@ function PdfWorkspace({
           <div className="pdf-info">
             <strong>{file.name}</strong>
             <span>
-              {file.pages} paginas - {formatBytes(file.size)}
+              {file.pages} {text.pdfPages} - {formatBytes(file.size)}
             </span>
           </div>
           <div className="page-actions">
             <IconAction
-              label="Subir PDF"
+              label={languageText(text, 'Subir PDF', 'Move PDF up')}
               disabled={index === 0}
               onClick={() => onMove(file.id, -1)}
               icon={<ArrowUp size={17} />}
             />
             <IconAction
-              label="Bajar PDF"
+              label={languageText(text, 'Bajar PDF', 'Move PDF down')}
               disabled={index === files.length - 1}
               onClick={() => onMove(file.id, 1)}
               icon={<ArrowDown size={17} />}
             />
             <IconAction
-              label="Quitar PDF"
+              label={languageText(text, 'Quitar PDF', 'Remove PDF')}
               danger
               onClick={() => onRemove(file.id)}
               icon={<Trash2 size={17} />}
@@ -1279,7 +1618,13 @@ function Benefit({
   )
 }
 
-function QuickToolCards({ onSelectTool }: { onSelectTool: (tool: Tool) => void }) {
+function QuickToolCards({
+  tools,
+  onSelectTool,
+}: {
+  tools: ToolMeta[]
+  onSelectTool: (tool: Tool) => void
+}) {
   return (
     <div className="quick-tools">
       {tools.map((tool) => {
@@ -1629,6 +1974,21 @@ function formatBytes(bytes: number) {
 
   const mb = bytes / 1024 / 1024
   return `${mb.toFixed(mb >= 10 ? 0 : 1)} MB`
+}
+
+function detectLanguage(): Language {
+  const preferredLanguages =
+    typeof navigator === 'undefined'
+      ? []
+      : [navigator.language, ...(navigator.languages ?? [])]
+
+  return preferredLanguages.some((language) => language.toLowerCase().startsWith('es'))
+    ? 'es'
+    : 'en'
+}
+
+function languageText(text: UiText, spanish: string, english: string) {
+  return text.activeTool === uiText.es.activeTool ? spanish : english
 }
 
 export default App
