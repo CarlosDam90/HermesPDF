@@ -15,57 +15,94 @@
 .site-navbar {
   position: relative;
   display: flex;
-  min-height: 64px;
+  min-height: 60px;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
-  border: 1px solid rgba(148, 163, 184, 0.24);
+  gap: 24px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(226, 232, 240, 0.96);
   border-radius: 8px;
-  padding: 8px 10px 8px 12px;
-  background: rgba(6, 17, 32, 0.82);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22);
+  padding: 7px 10px 7px 14px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 14px 36px rgba(2, 8, 18, 0.18);
 }
 
 .site-brand {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
-.site-logo-image {
+.site-mark-image {
   display: block;
-  width: clamp(180px, 22vw, 270px);
-  height: 48px;
+  width: 34px;
+  height: 42px;
   object-fit: contain;
   object-position: left center;
 }
 
-.site-brand .brand-name {
+.site-wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
   margin: 0;
-  font-size: 1rem;
+  color: #0f172a;
+  font-size: 1.08rem;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.site-wordmark strong {
+  color: #b9801f;
+  font-weight: 950;
 }
 
 .site-menu {
   position: relative;
+  flex: 0 0 auto;
+}
+
+.site-links {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: clamp(14px, 2vw, 28px);
+}
+
+.site-links button {
+  cursor: pointer;
+  border: 0;
+  padding: 6px 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.94rem;
+  font-weight: 780;
+  white-space: nowrap;
+}
+
+.site-links button:hover {
+  color: #0f172a;
 }
 
 .menu-button {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   cursor: pointer;
   place-items: center;
-  border: 1px solid rgba(240, 198, 107, 0.32);
+  border: 1px solid rgba(203, 213, 225, 0.9);
   border-radius: 8px;
-  background: rgba(8, 20, 38, 0.72);
-  color: #f8d979;
+  background: #ffffff;
+  color: #64748b;
 }
 
 .menu-button:hover {
-  border-color: rgba(240, 198, 107, 0.64);
-  background: rgba(15, 31, 56, 0.9);
+  border-color: rgba(240, 198, 107, 0.86);
+  background: #fff8e5;
+  color: #9b6b14;
 }
 
 .menu-popover {
@@ -76,19 +113,19 @@
   display: grid;
   min-width: 190px;
   overflow: hidden;
-  border: 1px solid rgba(240, 198, 107, 0.28);
+  border: 1px solid rgba(226, 232, 240, 0.96);
   border-radius: 8px;
-  background: #0b1729;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+  background: #ffffff;
+  box-shadow: 0 20px 60px rgba(2, 8, 18, 0.18);
 }
 
 .menu-popover button {
   cursor: pointer;
   border: 0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
   padding: 12px 14px;
   background: transparent;
-  color: #d7dde8;
+  color: #334155;
   text-align: left;
   font-weight: 750;
 }
@@ -98,8 +135,8 @@
 }
 
 .menu-popover button:hover {
-  background: rgba(240, 198, 107, 0.1);
-  color: #f8d979;
+  background: #fff8e5;
+  color: #9b6b14;
 }
 
 .topbar {
@@ -1080,6 +1117,20 @@ button:disabled {
 
   .site-navbar {
     min-height: 58px;
+    gap: 12px;
+  }
+
+  .site-links {
+    display: none;
+  }
+
+  .site-mark-image {
+    width: 32px;
+    height: 40px;
+  }
+
+  .site-wordmark {
+    font-size: 1rem;
   }
 
   .brand-area {

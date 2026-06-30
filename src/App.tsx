@@ -685,8 +685,27 @@ function App() {
       <section className="workspace">
         <header className="site-navbar">
           <div className="site-brand">
-            <img className="site-logo-image" src="/sparta-logo.png" alt="SpartaPDF" />
+            <img className="site-mark-image" src="/sparta-mark.png" alt="" aria-hidden="true" />
+            <p className="site-wordmark">
+              <span>Sparta</span>
+              <strong>PDF</strong>
+            </p>
           </div>
+
+          <nav className="site-links" aria-label="Navegacion principal">
+            <button type="button" onClick={() => selectTool('scanner')}>
+              {toolText[language].scanner.label}
+            </button>
+            <button type="button" onClick={() => selectTool('merge')}>
+              {toolText[language].merge.label}
+            </button>
+            <button type="button" onClick={() => selectTool('split')}>
+              {toolText[language].split.label}
+            </button>
+            <button type="button" onClick={() => openInfoPanel('privacy')}>
+              {text.privacy}
+            </button>
+          </nav>
 
           <div className="site-menu">
             <button
