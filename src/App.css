@@ -36,8 +36,8 @@
 
 .site-logo-image {
   display: block;
-  width: clamp(150px, 18vw, 220px);
-  height: 46px;
+  width: clamp(180px, 22vw, 270px);
+  height: 48px;
   object-fit: contain;
   object-position: left center;
 }

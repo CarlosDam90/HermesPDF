@@ -685,7 +685,7 @@ function App() {
       <section className="workspace">
         <header className="site-navbar">
           <div className="site-brand">
-            <img className="site-logo-image" src="/hermes-logo.png" alt="HermesPDF" />
+            <img className="site-logo-image" src="/sparta-logo.png" alt="SpartaPDF" />
           </div>
 
           <div className="site-menu">
