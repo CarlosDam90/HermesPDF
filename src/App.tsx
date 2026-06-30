@@ -23,6 +23,7 @@ import {
   X,
 } from 'lucide-react'
 import { degrees, PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { useLocation, useNavigate } from 'react-router-dom'
 import './App.css'
 
 type Tool = 'scanner' | 'merge' | 'split' | 'rotate' | 'delete' | 'watermark'
@@ -69,6 +70,17 @@ const defaultAdjustments: Adjustments = {
 }
 
 const toolOrder: Tool[] = ['scanner', 'merge', 'split', 'rotate', 'delete', 'watermark']
+
+const toolRoutes: Record<Tool, string> = {
+  scanner: '/imagen-a-pdf',
+  merge: '/unir-pdf',
+  split: '/dividir-pdf',
+  rotate: '/rotar-pdf',
+  delete: '/eliminar-paginas-pdf',
+  watermark: '/marca-de-agua-pdf',
+}
+
+const routeTools = new Map(Object.entries(toolRoutes).map(([tool, path]) => [path, tool as Tool]))
 
 const toolIcons: Record<Tool, typeof FileImage> = {
   scanner: FileImage,
@@ -287,10 +299,12 @@ function getTools(language: Language) {
 }
 
 function App() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [language] = useState<Language>(() => detectLanguage())
   const text = uiText[language]
   const localizedTools = useMemo(() => getTools(language), [language])
-  const [activeTool, setActiveTool] = useState<Tool>('scanner')
+  const [activeTool, setActiveTool] = useState<Tool>(() => getToolFromPath(window.location.pathname))
   const [images, setImages] = useState<PageImage[]>([])
   const [pdfFiles, setPdfFiles] = useState<PdfFile[]>([])
   const [adjustments, setAdjustments] = useState(defaultAdjustments)
@@ -317,12 +331,32 @@ function App() {
     (activeTool !== 'scanner' && pdfFiles.length === 0)
 
   useEffect(() => {
+    const toolFromRoute = getToolFromPath(location.pathname)
+    setActiveTool(toolFromRoute)
+    setStatus('')
+  }, [location.pathname])
+
+  useEffect(() => {
     document.documentElement.lang = language
-    document.title = text.pageTitle
+    document.title =
+      activeTool === 'scanner'
+        ? text.pageTitle
+        : `${activeToolMeta.label} | HermesPDF`
     document
       .querySelector('meta[name="description"]')
-      ?.setAttribute('content', text.pageDescription)
-  }, [language, text.pageDescription, text.pageTitle])
+      ?.setAttribute(
+        'content',
+        activeTool === 'scanner'
+          ? text.pageDescription
+          : `${activeToolMeta.description} ${text.pageDescription}`,
+      )
+    document
+      .querySelector('link[rel="canonical"]')
+      ?.setAttribute(
+        'href',
+        `https://hermespdf.carlitos-dominguez-19.workers.dev${toolRoutes[activeTool]}`,
+      )
+  }, [activeTool, activeToolMeta.description, activeToolMeta.label, language, text.pageDescription, text.pageTitle])
 
   const addImages = (fileList: FileList | null) => {
     if (!fileList) return
@@ -708,10 +742,7 @@ function App() {
                 key={tool.id}
                 className={tool.id === activeTool ? 'is-active' : ''}
                 type="button"
-                onClick={() => {
-                  setActiveTool(tool.id)
-                  setStatus('')
-                }}
+                onClick={() => selectTool(tool.id)}
               >
                 <Icon size={18} />
                 <span>{tool.label}</span>
@@ -778,7 +809,7 @@ function App() {
                 onFileChange={handleImageChange}
                 onRemove={removeImage}
                 onRotate={rotateImage}
-                onSelectTool={setActiveTool}
+                onSelectTool={selectTool}
                 text={text}
                 tools={localizedTools}
               />
@@ -796,7 +827,7 @@ function App() {
                 onRemove={(id) =>
                   setPdfFiles((current) => current.filter((file) => file.id !== id))
                 }
-                onSelectTool={setActiveTool}
+                onSelectTool={selectTool}
                 text={text}
                 tools={localizedTools}
               />
@@ -820,6 +851,12 @@ function App() {
   function openInfoPanel(panel: InfoPanel) {
     setInfoPanel(panel)
     setIsMenuOpen(false)
+  }
+
+  function selectTool(tool: Tool) {
+    setActiveTool(tool)
+    setStatus('')
+    navigate(toolRoutes[tool])
   }
 }
 
@@ -1985,6 +2022,12 @@ function detectLanguage(): Language {
   return preferredLanguages.some((language) => language.toLowerCase().startsWith('es'))
     ? 'es'
     : 'en'
+}
+
+function getToolFromPath(pathname: string): Tool {
+  if (pathname === '/' || pathname === '') return 'scanner'
+
+  return routeTools.get(pathname) ?? 'scanner'
 }
 
 function languageText(text: UiText, spanish: string, english: string) {
