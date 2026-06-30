@@ -646,7 +646,55 @@ function TrustAndHowItWorks({ onOpenPrivacy }: { onOpenPrivacy: () => void }) {
           Genera el archivo final y descargalo directamente desde tu dispositivo.
         </InfoStep>
       </div>
+
+      <section className="seo-panel" aria-labelledby="seo-title">
+        <div className="seo-intro">
+          <p className="hero-kicker">Herramientas PDF gratis</p>
+          <h2 id="seo-title">Convertir, unir y editar PDF online</h2>
+          <p>
+            Usa HermesPDF para trabajar con documentos PDF desde el navegador:
+            convierte imagenes a PDF, une archivos, divide documentos, rota paginas,
+            elimina hojas y anade marcas de agua sin instalar programas.
+          </p>
+        </div>
+
+        <div className="seo-grid">
+          <SeoTopic title="Convertir imagenes a PDF">
+            Crea un PDF a partir de imagenes JPG, PNG o WEBP con recorte automatico,
+            ajuste de contraste y modo escaneado.
+          </SeoTopic>
+          <SeoTopic title="Unir PDF gratis">
+            Combina varios archivos PDF en un unico documento manteniendo el orden que
+            elijas antes de descargarlo.
+          </SeoTopic>
+          <SeoTopic title="Dividir PDF online">
+            Extrae paginas concretas o rangos como 1, 3 o 5-8 para crear un nuevo PDF
+            solo con lo que necesitas.
+          </SeoTopic>
+          <SeoTopic title="Rotar y eliminar paginas PDF">
+            Gira paginas completas, elimina hojas innecesarias y deja el documento listo
+            para compartir o archivar.
+          </SeoTopic>
+          <SeoTopic title="Marca de agua PDF">
+            Anade una marca de agua de texto a todas las paginas de un PDF para proteger
+            borradores, informes o documentos internos.
+          </SeoTopic>
+          <SeoTopic title="PDF privado sin subir archivos">
+            Las operaciones se realizan en tu dispositivo, una ventaja importante si
+            trabajas con documentos personales o profesionales.
+          </SeoTopic>
+        </div>
+      </section>
     </section>
+  )
+}
+
+function SeoTopic({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <article className="seo-topic">
+      <h3>{title}</h3>
+      <p>{children}</p>
+    </article>
   )
 }
 
