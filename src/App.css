@@ -1,6 +1,6 @@
 .app-shell {
   min-height: 100svh;
-  min-width: 1280px;
+  min-width: 0;
   background:
     radial-gradient(circle at 50% -18%, rgba(212, 175, 55, 0.16), transparent 40%),
     linear-gradient(180deg, #ffffff 0%, #f6f7f9 56%, #eef1f5 100%);
@@ -16,7 +16,7 @@
 .site-navbar {
   position: relative;
   display: flex;
-  min-height: 58px;
+  min-height: 64px;
   align-items: center;
   justify-content: space-between;
   gap: 22px;
@@ -43,8 +43,8 @@
 
 .site-mark-image {
   display: block;
-  width: 30px;
-  height: 36px;
+  width: 36px;
+  height: 43px;
   object-fit: contain;
   object-position: left center;
 }
@@ -55,7 +55,7 @@
   gap: 2px;
   margin: 0;
   color: #0f172a;
-  font-size: 1.12rem;
+  font-size: 1.28rem;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -83,7 +83,7 @@
   position: relative;
   cursor: pointer;
   border: 0;
-  min-height: 58px;
+  min-height: 64px;
   padding: 0 14px;
   background: transparent;
   color: #64748b;
@@ -1366,7 +1366,7 @@ button:disabled {
   text-transform: uppercase;
 }
 
-@media (max-width: 0px) {
+@media (max-width: 1100px) {
   .hero-start {
     grid-template-columns: 1fr;
   }
@@ -1382,22 +1382,35 @@ button:disabled {
   .seo-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .footer-main {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
 }
 
-@media (max-width: 0px) {
+@media (max-width: 760px) {
   .workspace {
-    width: min(100% - 18px, 1220px);
+    width: 100%;
+    padding: 0 18px 28px;
     padding-top: 14px;
   }
 
   .topbar {
     align-items: stretch;
     flex-direction: column;
+    min-height: 0;
+    padding: 18px 0 10px;
   }
 
   .site-navbar {
-    min-height: 58px;
+    min-height: 60px;
     gap: 12px;
+    margin: -14px -18px 0;
+    padding: 0 18px;
   }
 
   .site-links {
@@ -1410,11 +1423,11 @@ button:disabled {
 
   .site-mark-image {
     width: 32px;
-    height: 40px;
+    height: 38px;
   }
 
   .site-wordmark {
-    font-size: 1rem;
+    font-size: 1.08rem;
   }
 
   .brand-area {
@@ -1436,7 +1449,8 @@ button:disabled {
   }
 
   .seo-panel {
-    padding: 18px;
+    grid-template-columns: 1fr;
+    padding: 18px 0 0;
   }
 
   .seo-grid {
@@ -1488,6 +1502,28 @@ button:disabled {
     min-height: 150px;
   }
 
+  .footer-main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(100% - 36px, 1180px);
+    gap: 26px;
+    padding: 30px 0 24px;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+
+  .footer-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 18px;
+  }
+
+  .footer-bottom div {
+    flex-wrap: wrap;
+    gap: 14px 20px;
+  }
+
   .pdf-card {
     grid-template-columns: auto minmax(0, 1fr);
   }
@@ -1498,8 +1534,22 @@ button:disabled {
   }
 }
 
-@media (max-width: 0px) {
+@media (max-width: 640px) {
   .site-links {
     display: none;
+  }
+
+  .tool-tabs {
+    overflow-x: auto;
+    grid-template-columns: repeat(6, minmax(145px, 1fr));
+    padding-bottom: 4px;
+  }
+
+  .upload-medallion-wrap {
+    width: min(360px, 86vw);
+  }
+
+  .footer-main {
+    grid-template-columns: 1fr;
   }
 }
