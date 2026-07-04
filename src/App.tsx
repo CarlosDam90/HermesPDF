@@ -7,15 +7,14 @@ import {
   Eraser,
   FileImage,
   Files,
+  Grip,
   HelpCircle,
   ImagePlus,
   Layers,
   Lock,
   Mail,
-  MoreVertical,
   RefreshCw,
   RotateCw,
-  ScanLine,
   Scissors,
   ShieldCheck,
   Stamp,
@@ -288,7 +287,6 @@ const uiText = {
 }
 
 type UiText = typeof uiText.es
-type ToolMeta = ReturnType<typeof getTools>[number]
 
 function getTools(language: Language) {
   return toolOrder.map((id) => ({
@@ -715,7 +713,7 @@ function App() {
               aria-expanded={isMenuOpen}
               onClick={() => setIsMenuOpen((open) => !open)}
             >
-              <MoreVertical size={22} />
+              <Grip size={22} />
             </button>
             {isMenuOpen && (
               <div className="menu-popover">
@@ -828,9 +826,7 @@ function App() {
                 onFileChange={handleImageChange}
                 onRemove={removeImage}
                 onRotate={rotateImage}
-                onSelectTool={selectTool}
                 text={text}
-                tools={localizedTools}
               />
             ) : (
               <PdfWorkspace
@@ -846,9 +842,7 @@ function App() {
                 onRemove={(id) =>
                   setPdfFiles((current) => current.filter((file) => file.id !== id))
                 }
-                onSelectTool={selectTool}
                 text={text}
-                tools={localizedTools}
               />
             )}
           </section>
@@ -1395,7 +1389,6 @@ function ScannerWorkspace({
   inputRef,
   isDragging,
   text,
-  tools,
   onDragLeave,
   onDragOver,
   onDrop,
@@ -1403,14 +1396,12 @@ function ScannerWorkspace({
   onMove,
   onRemove,
   onRotate,
-  onSelectTool,
 }: {
   images: PageImage[]
   adjustments: Adjustments
   inputRef: RefObject<HTMLInputElement | null>
   isDragging: boolean
   text: UiText
-  tools: ToolMeta[]
   onDragLeave: () => void
   onDragOver: () => void
   onDrop: (event: DragEvent<HTMLLabelElement>) => void
@@ -1418,58 +1409,31 @@ function ScannerWorkspace({
   onMove: (id: string, direction: -1 | 1) => void
   onRemove: (id: string) => void
   onRotate: (id: string) => void
-  onSelectTool: (tool: Tool) => void
 }) {
   if (images.length === 0) {
     return (
       <div className="empty-state empty-start">
-        <div className="hero-start">
-          <div className="hero-copy">
-            <p className="hero-kicker">{text.scannerKicker}</p>
-            <h2>
-              {text.scannerTitleA} <span>PDF</span> {text.scannerTitleB}
-            </h2>
-            <p>{text.scannerText}</p>
-            <div className="benefit-list">
-              <Benefit icon={<ScanLine size={16} />} title={text.smartScan}>
-                {text.smartScanText}
-              </Benefit>
-              <Benefit icon={<ShieldCheck size={16} />} title={text.localTitle}>
-                {text.localText}
-              </Benefit>
-              <Benefit icon={<FileImage size={16} />} title={text.freeTitle}>
-                {text.freeText}
-              </Benefit>
+        <div className="upload-only">
+          <label
+            className={`upload-hero ${isDragging ? 'is-dragging' : ''}`}
+            onDragOver={(event) => {
+              event.preventDefault()
+              onDragOver()
+            }}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+          >
+            <input ref={inputRef} type="file" accept="image/*" multiple onChange={onFileChange} />
+            <ImagePlus size={58} />
+            <span>{text.uploadImages}</span>
+            <small>{text.clickSelect}</small>
+            <div className="format-pills">
+              <span>JPG</span>
+              <span>PNG</span>
+              <span>WEBP</span>
             </div>
-          </div>
-
-          <div className="hero-upload-column">
-            <label
-              className={`upload-hero ${isDragging ? 'is-dragging' : ''}`}
-              onDragOver={(event) => {
-                event.preventDefault()
-                onDragOver()
-              }}
-              onDragLeave={onDragLeave}
-              onDrop={onDrop}
-            >
-              <input type="file" accept="image/*" multiple onChange={onFileChange} />
-              <ImagePlus size={44} />
-              <span>{text.uploadImages}</span>
-              <small>{text.clickSelect}</small>
-              <div className="format-pills">
-                <span>JPG</span>
-                <span>PNG</span>
-                <span>WEBP</span>
-              </div>
-            </label>
-            <button className="text-button" type="button" onClick={() => inputRef.current?.click()}>
-              {text.chooseExplorer}
-            </button>
-          </div>
+          </label>
         </div>
-
-        <QuickToolCards tools={tools} onSelectTool={onSelectTool} />
       </div>
     )
   }
@@ -1533,84 +1497,55 @@ function PdfWorkspace({
   inputRef,
   isDragging,
   text,
-  tools,
   onDragLeave,
   onDragOver,
   onDrop,
   onFileChange,
   onMove,
   onRemove,
-  onSelectTool,
 }: {
   activeTool: Tool
   files: PdfFile[]
   inputRef: RefObject<HTMLInputElement | null>
   isDragging: boolean
   text: UiText
-  tools: ToolMeta[]
   onDragLeave: () => void
   onDragOver: () => void
   onDrop: (event: DragEvent<HTMLLabelElement>) => void
   onFileChange: (event: ChangeEvent<HTMLInputElement>) => void
   onMove: (id: string, direction: -1 | 1) => void
   onRemove: (id: string) => void
-  onSelectTool: (tool: Tool) => void
 }) {
-  const tool = tools.find((item) => item.id === activeTool) ?? tools[1]
-  const ToolIcon = tool.icon
+  const ToolIcon = toolIcons[activeTool]
 
   if (files.length === 0) {
     return (
       <div className="empty-state empty-start">
-        <div className="hero-start">
-          <div className="hero-copy">
-            <p className="hero-kicker">{text.pdfLocalTool}</p>
-            <h2>
-              {tool.label} <span>{text.withoutUpload}</span>
-            </h2>
-            <p>
-              {tool.description} {text.runsBrowser}
-            </p>
-            <div className="benefit-list">
-              <Benefit icon={<ShieldCheck size={16} />} title={text.privateTitle}>
-                {text.privateText}
-              </Benefit>
-              <Benefit icon={<Files size={16} />} title={text.fastTitle}>
-                {text.fastText}
-              </Benefit>
+        <div className="upload-only">
+          <label
+            className={`upload-hero ${isDragging ? 'is-dragging' : ''}`}
+            onDragOver={(event) => {
+              event.preventDefault()
+              onDragOver()
+            }}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              accept="application/pdf,.pdf"
+              multiple={activeTool === 'merge'}
+              onChange={onFileChange}
+            />
+            <ToolIcon size={58} />
+            <span>{text.uploadPdf}</span>
+            <small>{text.clickSelect}</small>
+            <div className="format-pills">
+              <span>PDF</span>
             </div>
-          </div>
-
-          <div className="hero-upload-column">
-            <label
-              className={`upload-hero ${isDragging ? 'is-dragging' : ''}`}
-              onDragOver={(event) => {
-                event.preventDefault()
-                onDragOver()
-              }}
-              onDragLeave={onDragLeave}
-              onDrop={onDrop}
-            >
-              <input
-                type="file"
-                accept="application/pdf,.pdf"
-                multiple={activeTool === 'merge'}
-                onChange={onFileChange}
-              />
-              <ToolIcon size={44} />
-              <span>{text.uploadPdf}</span>
-              <small>{text.clickSelect}</small>
-              <div className="format-pills">
-                <span>PDF</span>
-              </div>
-            </label>
-            <button className="text-button" type="button" onClick={() => inputRef.current?.click()}>
-              {text.chooseExplorer}
-            </button>
-          </div>
+          </label>
         </div>
-
-        <QuickToolCards tools={tools} onSelectTool={onSelectTool} />
       </div>
     )
   }
@@ -1650,49 +1585,6 @@ function PdfWorkspace({
           </div>
         </article>
       ))}
-    </div>
-  )
-}
-
-function Benefit({
-  icon,
-  title,
-  children,
-}: {
-  icon: ReactNode
-  title: string
-  children: ReactNode
-}) {
-  return (
-    <div className="benefit-item">
-      <span className="benefit-icon">{icon}</span>
-      <div>
-        <strong>{title}</strong>
-        <p>{children}</p>
-      </div>
-    </div>
-  )
-}
-
-function QuickToolCards({
-  tools,
-  onSelectTool,
-}: {
-  tools: ToolMeta[]
-  onSelectTool: (tool: Tool) => void
-}) {
-  return (
-    <div className="quick-tools">
-      {tools.map((tool) => {
-        const Icon = tool.icon
-        return (
-          <button key={tool.id} type="button" onClick={() => onSelectTool(tool.id)}>
-            <Icon size={26} />
-            <strong>{tool.label}</strong>
-            <span>{tool.description}</span>
-          </button>
-        )
-      })}
     </div>
   )
 }

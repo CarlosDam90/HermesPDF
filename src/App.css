@@ -2,8 +2,8 @@
   min-height: 100svh;
   min-width: 1280px;
   background:
-    radial-gradient(circle at 50% -18%, rgba(42, 86, 150, 0.42), transparent 42%),
-    linear-gradient(180deg, #061120 0%, #081426 58%, #06101d 100%);
+    radial-gradient(circle at 50% -18%, rgba(218, 169, 83, 0.32), transparent 42%),
+    linear-gradient(180deg, #181714 0%, #221d16 58%, #15130f 100%);
   color: #f8fafc;
 }
 
@@ -50,7 +50,7 @@
   gap: 2px;
   margin: 0;
   color: #0f172a;
-  font-size: 1.08rem;
+  font-size: 1.22rem;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -91,8 +91,8 @@
 
 .menu-button {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   cursor: pointer;
   place-items: center;
   border: 1px solid rgba(203, 213, 225, 0.9);
@@ -238,14 +238,14 @@ h1 {
   gap: 8px;
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 8px;
-  background: rgba(8, 20, 38, 0.72);
+  background: rgba(30, 26, 19, 0.72);
   color: #d7dde8;
   font-weight: 850;
 }
 
 .tool-tabs button:hover {
   border-color: rgba(240, 198, 107, 0.54);
-  background: rgba(15, 31, 56, 0.9);
+  background: rgba(42, 34, 22, 0.92);
 }
 
 .tool-tabs button.is-active {
@@ -328,7 +328,7 @@ button:disabled {
   overflow: hidden;
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 8px;
-  background: rgba(8, 18, 34, 0.72);
+  background: rgba(29, 25, 18, 0.72);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
 }
 
@@ -346,7 +346,7 @@ button:disabled {
   border: 1px solid rgba(240, 198, 107, 0.24);
   border-radius: 8px;
   padding: 22px;
-  background: rgba(8, 18, 34, 0.72);
+  background: rgba(30, 25, 18, 0.72);
 }
 
 .info-band h2 {
@@ -373,7 +373,7 @@ button:disabled {
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 8px;
   padding: 18px;
-  background: rgba(9, 24, 48, 0.72);
+  background: rgba(32, 27, 19, 0.72);
 }
 
 .info-step span {
@@ -404,7 +404,7 @@ button:disabled {
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 8px;
   padding: 24px;
-  background: rgba(9, 24, 48, 0.72);
+  background: rgba(32, 27, 19, 0.72);
 }
 
 .seo-intro {
@@ -530,7 +530,7 @@ button:disabled {
   gap: 18px;
   padding: 18px;
   border-right: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(6, 17, 32, 0.82);
+  background: rgba(24, 21, 16, 0.86);
 }
 
 .upload-zone {
@@ -543,7 +543,7 @@ button:disabled {
   gap: 10px;
   border: 2px dashed rgba(240, 198, 107, 0.42);
   border-radius: 8px;
-  background: rgba(15, 31, 56, 0.72);
+  background: rgba(36, 30, 21, 0.72);
   color: #d7dde8;
   text-align: center;
 }
@@ -656,7 +656,7 @@ button:disabled {
   border: 1px solid rgba(240, 198, 107, 0.28);
   border-radius: 8px;
   padding: 10px 12px;
-  background: rgba(15, 31, 56, 0.78);
+  background: rgba(36, 30, 21, 0.78);
   color: #d7dde8;
   font-size: 0.9rem;
   font-weight: 750;
@@ -668,10 +668,10 @@ button:disabled {
   overflow: auto;
   padding: 18px;
   background:
-    radial-gradient(circle at 52% 12%, rgba(57, 106, 177, 0.21), transparent 36%),
+    radial-gradient(circle at 52% 12%, rgba(218, 169, 83, 0.14), transparent 36%),
     linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
     linear-gradient(180deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-    #071426;
+    #181510;
   background-size: auto, 28px 28px, 28px 28px, auto;
 }
 
@@ -774,8 +774,9 @@ button:disabled {
 .empty-state {
   display: grid;
   min-height: 100%;
+  place-items: center;
   gap: 34px;
-  padding: 54px 58px 34px;
+  padding: 58px;
   color: #d7dde8;
 }
 
@@ -862,20 +863,26 @@ button:disabled {
   gap: 12px;
 }
 
+.upload-only {
+  display: grid;
+  width: min(980px, 100%);
+  place-items: center;
+}
+
 .upload-hero {
   display: grid;
-  width: min(780px, 100%);
-  min-height: 430px;
+  width: min(920px, 100%);
+  min-height: 500px;
   cursor: pointer;
   place-items: center;
   align-content: center;
   gap: 16px;
-  border: 2px dashed rgba(89, 139, 219, 0.72);
+  border: 2px dashed rgba(218, 169, 83, 0.78);
   border-radius: 8px;
   padding: 36px;
-  background: rgba(8, 20, 38, 0.78);
-  color: #72a7ff;
-  box-shadow: inset 0 0 70px rgba(42, 86, 150, 0.16);
+  background: rgba(25, 22, 17, 0.82);
+  color: #d7a342;
+  box-shadow: inset 0 0 80px rgba(218, 169, 83, 0.1);
   text-align: center;
   transition:
     border-color 160ms ease,
@@ -891,7 +898,7 @@ button:disabled {
 .upload-hero:hover,
 .upload-hero.is-dragging {
   border-color: #f0c66b;
-  background: rgba(15, 31, 56, 0.92);
+  background: rgba(37, 30, 20, 0.94);
   box-shadow:
     inset 0 0 80px rgba(240, 198, 107, 0.08),
     0 24px 60px rgba(0, 0, 0, 0.2);
@@ -907,7 +914,7 @@ button:disabled {
 
 .upload-hero small {
   max-width: 340px;
-  color: #8db8ff;
+  color: #d6b46a;
   font-size: 1rem;
   font-weight: 750;
 }
@@ -957,7 +964,7 @@ button:disabled {
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 8px;
   padding: 18px 14px;
-  background: rgba(9, 24, 48, 0.78);
+  background: rgba(32, 27, 19, 0.78);
   color: #f8fafc;
   text-align: center;
   transition:
@@ -968,7 +975,7 @@ button:disabled {
 
 .quick-tools button:hover {
   border-color: rgba(240, 198, 107, 0.54);
-  background: rgba(15, 31, 56, 0.94);
+  background: rgba(42, 34, 22, 0.94);
   transform: translateY(-2px);
 }
 
@@ -1006,7 +1013,7 @@ button:disabled {
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 8px;
   padding: 14px;
-  background: rgba(8, 20, 38, 0.78);
+  background: rgba(30, 26, 19, 0.78);
 }
 
 .pdf-icon {
@@ -1044,7 +1051,7 @@ button:disabled {
   overflow: hidden;
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 8px;
-  background: rgba(8, 20, 38, 0.78);
+  background: rgba(30, 26, 19, 0.78);
 }
 
 .page-preview {
@@ -1053,7 +1060,7 @@ button:disabled {
   place-items: center;
   overflow: hidden;
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(5, 13, 24, 0.72);
+  background: rgba(20, 17, 13, 0.72);
 }
 
 .page-preview img {
