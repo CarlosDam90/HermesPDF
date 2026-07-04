@@ -199,7 +199,7 @@ const uiText = {
     privacyFirst: 'Privacidad primero',
     browserFilesTitle: 'Tus archivos se quedan en tu navegador',
     browserFilesText:
-      'HermesPDF procesa imagenes y PDFs en local. No necesitas crear cuenta ni subir documentos a un servidor para usar estas herramientas.',
+      'SpartaPDF procesa imagenes y PDFs en local. No necesitas crear cuenta ni subir documentos a un servidor para usar estas herramientas.',
     viewPrivacy: 'Ver privacidad',
     stepOneTitle: 'Sube tus archivos',
     stepOneText: 'Arrastra imagenes o PDFs a la zona de subida de la herramienta que necesites.',
@@ -210,10 +210,10 @@ const uiText = {
     seoKicker: 'Herramientas PDF gratis',
     seoTitle: 'Convertir, unir y editar PDF online',
     seoText:
-      'Usa HermesPDF para trabajar con documentos PDF desde el navegador: convierte imagenes a PDF, une archivos, divide documentos, rota paginas, elimina hojas y anade marcas de agua sin instalar programas.',
-    pageTitle: 'HermesPDF | Convertir, unir y editar PDF gratis online',
+      'Usa SpartaPDF para trabajar con documentos PDF desde el navegador: convierte imagenes a PDF, une archivos, divide documentos, rota paginas, elimina hojas y anade marcas de agua sin instalar programas.',
+    pageTitle: 'SpartaPDF | Convertir, unir y editar PDF gratis online',
     pageDescription:
-      'HermesPDF te permite convertir imagenes a PDF, unir, dividir, rotar, eliminar paginas y anadir marcas de agua gratis desde tu navegador.',
+      'SpartaPDF te permite convertir imagenes a PDF, unir, dividir, rotar, eliminar paginas y anadir marcas de agua gratis desde tu navegador.',
   },
   en: {
     activeTool: 'Active tool',
@@ -268,7 +268,7 @@ const uiText = {
     privacyFirst: 'Privacy first',
     browserFilesTitle: 'Your files stay in your browser',
     browserFilesText:
-      'HermesPDF processes images and PDFs locally. You do not need an account or a server upload to use these tools.',
+      'SpartaPDF processes images and PDFs locally. You do not need an account or a server upload to use these tools.',
     viewPrivacy: 'View privacy',
     stepOneTitle: 'Upload your files',
     stepOneText: 'Drop images or PDFs into the upload area for the tool you need.',
@@ -279,10 +279,10 @@ const uiText = {
     seoKicker: 'Free PDF tools',
     seoTitle: 'Convert, merge and edit PDF online',
     seoText:
-      'Use HermesPDF to work with PDF documents from your browser: convert images to PDF, merge files, split documents, rotate pages, delete sheets and add watermarks without installing software.',
-    pageTitle: 'HermesPDF | Convert, merge and edit PDF online for free',
+      'Use SpartaPDF to work with PDF documents from your browser: convert images to PDF, merge files, split documents, rotate pages, delete sheets and add watermarks without installing software.',
+    pageTitle: 'SpartaPDF | Convert, merge and edit PDF online for free',
     pageDescription:
-      'HermesPDF lets you convert images to PDF, merge, split, rotate, delete pages and add watermarks for free from your browser.',
+      'SpartaPDF lets you convert images to PDF, merge, split, rotate, delete pages and add watermarks for free from your browser.',
   },
 }
 
@@ -308,7 +308,7 @@ function App() {
   const [adjustments, setAdjustments] = useState(defaultAdjustments)
   const [pageSelection, setPageSelection] = useState('1')
   const [rotation, setRotation] = useState(90)
-  const [watermark, setWatermark] = useState('HermesPDF')
+  const [watermark, setWatermark] = useState('SpartaPDF')
   const [isDragging, setIsDragging] = useState(false)
   const [status, setStatus] = useState('')
   const [isExporting, setIsExporting] = useState(false)
@@ -339,7 +339,7 @@ function App() {
     document.title =
       activeTool === 'scanner'
         ? text.pageTitle
-        : `${activeToolMeta.label} | HermesPDF`
+        : `${activeToolMeta.label} | SpartaPDF`
     document
       .querySelector('meta[name="description"]')
       ?.setAttribute(
@@ -352,7 +352,7 @@ function App() {
       .querySelector('link[rel="canonical"]')
       ?.setAttribute(
         'href',
-        `https://hermespdf.carlitos-dominguez-19.workers.dev${toolRoutes[activeTool]}`,
+        `https://spartapdf.com${toolRoutes[activeTool]}`,
       )
   }, [activeTool, activeToolMeta.description, activeToolMeta.label, language, text.pageDescription, text.pageTitle])
 
@@ -479,7 +479,7 @@ function App() {
     setAdjustments(defaultAdjustments)
     setPageSelection('1')
     setRotation(90)
-    setWatermark('HermesPDF')
+    setWatermark('SpartaPDF')
     setStatus('')
   }
 
@@ -939,7 +939,7 @@ function TrustAndHowItWorks({
   }
 
   return (
-    <section className="info-sections" aria-label="Informacion de HermesPDF">
+    <section className="info-sections" aria-label="Informacion de SpartaPDF">
       <div className="info-band">
         <div>
           <p className="hero-kicker">{text.privacyFirst}</p>
@@ -1025,7 +1025,7 @@ function InfoModal({
         icon: <ShieldCheck size={22} />,
         title: 'Quienes somos',
         body: [
-          'HermesPDF es una herramienta web pensada para trabajar con PDFs de forma rapida, sencilla y privada.',
+          'SpartaPDF es una herramienta web pensada para trabajar con PDFs de forma rapida, sencilla y privada.',
           'La idea es ofrecer utilidades practicas para convertir imagenes, unir, dividir, rotar y marcar PDFs sin depender de servidores ni cuentas de usuario.',
         ],
       },
@@ -1041,7 +1041,7 @@ function InfoModal({
         icon: <Lock size={22} />,
         title: 'Privacidad',
         body: [
-          'Los archivos se procesan en el navegador. HermesPDF no sube tus imagenes ni PDFs a un servidor para generar los documentos.',
+          'Los archivos se procesan en el navegador. SpartaPDF no sube tus imagenes ni PDFs a un servidor para generar los documentos.',
           'Al cerrar o recargar la pagina, los archivos cargados dejan de estar disponibles en la sesion actual.',
         ],
       },
@@ -1059,7 +1059,7 @@ function InfoModal({
         icon: <ShieldCheck size={22} />,
         title: 'About us',
         body: [
-          'HermesPDF is a web tool designed to work with PDFs quickly, simply and privately.',
+          'SpartaPDF is a web tool designed to work with PDFs quickly, simply and privately.',
           'It offers practical utilities to convert images, merge, split, rotate and watermark PDFs without servers or user accounts.',
         ],
       },
@@ -1075,7 +1075,7 @@ function InfoModal({
         icon: <Lock size={22} />,
         title: 'Privacy',
         body: [
-          'Files are processed in the browser. HermesPDF does not upload your images or PDFs to a server to create documents.',
+          'Files are processed in the browser. SpartaPDF does not upload your images or PDFs to a server to create documents.',
           'When you close or reload the page, loaded files are no longer available in the current session.',
         ],
       },
