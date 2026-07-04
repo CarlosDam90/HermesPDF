@@ -741,14 +741,9 @@ function App() {
 
         <header className="topbar">
           <div>
-            <p className="eyebrow">{text.activeTool}</p>
             <h1>{activeToolMeta.label}</h1>
           </div>
           <div className="topbar-actions">
-            <div className="privacy-pill">
-              <ShieldCheck size={16} />
-              {text.localPrivate}
-            </div>
             <button className="icon-button" type="button" onClick={resetAll} title={text.reset}>
               <RefreshCw size={19} />
             </button>
