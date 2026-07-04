@@ -1418,6 +1418,7 @@ button:disabled {
     align-items: stretch;
     flex-direction: column;
     min-height: 0;
+    gap: 14px;
     padding: 18px 0 10px;
   }
 
@@ -1450,12 +1451,16 @@ button:disabled {
   }
 
   .topbar-actions {
-    justify-content: space-between;
+    position: static;
+    width: 100%;
+    justify-content: center;
     flex-wrap: wrap;
+    transform: none;
   }
 
   .primary-button {
-    flex: 1;
+    flex: 0 1 auto;
+    min-width: 180px;
   }
 
   .info-band {
@@ -1546,6 +1551,17 @@ button:disabled {
 @media (max-width: 640px) {
   .site-links {
     display: none;
+  }
+
+  .topbar-actions {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .topbar-actions .primary-button {
+    width: 100%;
+    min-width: 0;
   }
 
   .tool-tabs {
