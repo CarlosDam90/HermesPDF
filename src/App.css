@@ -334,8 +334,10 @@ button:disabled {
 
 .info-sections {
   display: grid;
-  gap: 14px;
-  margin-top: 18px;
+  max-width: 1180px;
+  gap: 24px;
+  margin: 30px auto 0;
+  padding: 4px 0 22px;
 }
 
 .info-band {
@@ -343,10 +345,12 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  border: 1px solid rgba(226, 232, 240, 0.95);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-left: 4px solid #d7a342;
   border-radius: 8px;
-  padding: 22px;
+  padding: 24px 28px;
   background: #ffffff;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
 }
 
 .info-band h2 {
@@ -364,16 +368,19 @@ button:disabled {
 .how-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 16px;
 }
 
 .info-step {
   display: grid;
-  gap: 10px;
-  border: 1px solid rgba(226, 232, 240, 0.95);
+  align-content: start;
+  gap: 12px;
+  min-height: 170px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 8px;
-  padding: 18px;
+  padding: 22px;
   background: #ffffff;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
 }
 
 .info-step span {
@@ -400,11 +407,12 @@ button:disabled {
 
 .seo-panel {
   display: grid;
-  gap: 18px;
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  border-radius: 8px;
-  padding: 24px;
-  background: #ffffff;
+  grid-template-columns: minmax(320px, 0.42fr) minmax(0, 0.58fr);
+  align-items: start;
+  gap: 28px;
+  border-top: 1px solid rgba(203, 213, 225, 0.86);
+  padding: 30px 0 0;
+  background: transparent;
 }
 
 .seo-intro {
@@ -426,17 +434,19 @@ button:disabled {
 
 .seo-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .seo-topic {
   display: grid;
-  gap: 8px;
-  border: 1px solid rgba(226, 232, 240, 0.95);
+  gap: 10px;
+  min-height: 138px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 8px;
-  padding: 16px;
-  background: #f8fafc;
+  padding: 18px;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.045);
 }
 
 .seo-topic h3 {
@@ -667,12 +677,7 @@ button:disabled {
   min-width: 0;
   overflow: auto;
   padding: 18px;
-  background:
-    radial-gradient(circle at 52% 12%, rgba(212, 175, 55, 0.08), transparent 36%),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.16) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(148, 163, 184, 0.16) 1px, transparent 1px),
-    #f1f5f9;
-  background-size: auto, 28px 28px, 28px 28px, auto;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .scan-overlay {
