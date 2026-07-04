@@ -325,11 +325,11 @@ button:disabled {
   display: grid;
   grid-template-columns: minmax(280px, 330px) minmax(0, 1fr);
   min-height: calc(100svh - 132px);
-  overflow: hidden;
-  border: 1px solid rgba(203, 213, 225, 0.88);
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.1);
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .info-sections {
@@ -532,6 +532,7 @@ button:disabled {
 
 .tool-grid.is-empty-start .pages-area {
   min-height: calc(100svh - 184px);
+  padding: 0;
 }
 
 .controls-panel {
@@ -677,7 +678,7 @@ button:disabled {
   min-width: 0;
   overflow: auto;
   padding: 18px;
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  background: transparent;
 }
 
 .scan-overlay {
