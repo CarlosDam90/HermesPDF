@@ -682,13 +682,18 @@ function App() {
     <main className="app-shell">
       <section className="workspace">
         <header className="site-navbar">
-          <div className="site-brand">
+          <button
+            className="site-brand"
+            type="button"
+            aria-label="SpartaPDF - Inicio"
+            onClick={() => navigate('/')}
+          >
             <img className="site-mark-image" src="/sparta-mark.png" alt="" aria-hidden="true" />
             <p className="site-wordmark">
               <span>Sparta</span>
               <strong>PDF</strong>
             </p>
-          </div>
+          </button>
 
           <nav className="site-links" aria-label="Navegacion principal">
             <button type="button" onClick={() => selectTool('scanner')}>
