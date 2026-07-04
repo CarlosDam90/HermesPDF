@@ -834,6 +834,7 @@ function App() {
                 files={pdfFiles}
                 inputRef={pdfInputRef}
                 isDragging={isDragging}
+                uploadTitle={activeToolMeta.label}
                 onDragLeave={() => setIsDragging(false)}
                 onDragOver={() => setIsDragging(true)}
                 onDrop={handlePdfDrop}
@@ -1424,7 +1425,13 @@ function ScannerWorkspace({
             onDrop={onDrop}
           >
             <input ref={inputRef} type="file" accept="image/*" multiple onChange={onFileChange} />
-            <img className="upload-medallion" src="/upload-medallion.png" alt="" aria-hidden="true" />
+            <div className="upload-medallion-wrap">
+              <img className="upload-medallion" src="/upload-medallion.png" alt="" aria-hidden="true" />
+              <div className="upload-medallion-copy">
+                <strong>{text.uploadImages}</strong>
+                <span>{languageText(text, 'Seleccionar imagenes', 'Select images')}</span>
+              </div>
+            </div>
             <span className="upload-caption">{text.uploadImages}</span>
             <small>{text.clickSelect}</small>
             <div className="format-pills">
@@ -1497,6 +1504,7 @@ function PdfWorkspace({
   inputRef,
   isDragging,
   text,
+  uploadTitle,
   onDragLeave,
   onDragOver,
   onDrop,
@@ -1509,6 +1517,7 @@ function PdfWorkspace({
   inputRef: RefObject<HTMLInputElement | null>
   isDragging: boolean
   text: UiText
+  uploadTitle: string
   onDragLeave: () => void
   onDragOver: () => void
   onDrop: (event: DragEvent<HTMLLabelElement>) => void
@@ -1516,6 +1525,9 @@ function PdfWorkspace({
   onMove: (id: string, direction: -1 | 1) => void
   onRemove: (id: string) => void
 }) {
+  const medallionTitle = languageText(text, `Arrastra para ${uploadTitle}`, `Drop file for ${uploadTitle}`)
+  const medallionAction = languageText(text, 'Seleccionar PDF', 'Select PDF')
+
   if (files.length === 0) {
     return (
       <div className="empty-state empty-start">
@@ -1536,8 +1548,14 @@ function PdfWorkspace({
               multiple={activeTool === 'merge'}
               onChange={onFileChange}
             />
-            <img className="upload-medallion" src="/upload-medallion.png" alt="" aria-hidden="true" />
-            <span className="upload-caption">{text.uploadPdf}</span>
+            <div className="upload-medallion-wrap">
+              <img className="upload-medallion" src="/upload-medallion.png" alt="" aria-hidden="true" />
+              <div className="upload-medallion-copy">
+                <strong>{medallionTitle}</strong>
+                <span>{medallionAction}</span>
+              </div>
+            </div>
+            <span className="upload-caption">{medallionTitle}</span>
             <small>{text.clickSelect}</small>
             <div className="format-pills">
               <span>PDF</span>
