@@ -859,6 +859,12 @@ function App() {
           text={text}
           onOpenPrivacy={() => openInfoPanel('privacy')}
         />
+
+        <SiteFooter
+          language={language}
+          onOpenInfo={openInfoPanel}
+          onSelectTool={selectTool}
+        />
       </section>
 
       {infoPanel && (
@@ -877,6 +883,160 @@ function App() {
     setStatus('')
     navigate(toolRoutes[tool])
   }
+}
+
+function SiteFooter({
+  language,
+  onOpenInfo,
+  onSelectTool,
+}: {
+  language: Language
+  onOpenInfo: (panel: InfoPanel) => void
+  onSelectTool: (tool: Tool) => void
+}) {
+  const footerText = {
+    es: {
+      tagline: 'PDFs rapidos, privados y sencillos.',
+      tools: 'Herramientas',
+      company: 'Empresa',
+      product: 'Producto',
+      legal: 'Legal',
+      imagePdf: 'Imagen a PDF',
+      mergePdf: 'Unir PDF',
+      splitPdf: 'Dividir PDF',
+      watermarkPdf: 'Marca de agua',
+      about: 'Quienes somos',
+      contact: 'Contacto',
+      help: 'Ayuda',
+      privacy: 'Privacidad',
+      terms: 'Condiciones de uso',
+      security: 'Seguridad',
+      pricing: 'Precio',
+      desktop: 'Version web',
+      language: 'Espanol',
+      made: 'Hecho para trabajar con documentos sin complicaciones.',
+    },
+    en: {
+      tagline: 'Fast, private and simple PDFs.',
+      tools: 'Tools',
+      company: 'Company',
+      product: 'Product',
+      legal: 'Legal',
+      imagePdf: 'Image to PDF',
+      mergePdf: 'Merge PDF',
+      splitPdf: 'Split PDF',
+      watermarkPdf: 'Watermark PDF',
+      about: 'About us',
+      contact: 'Contact',
+      help: 'Help',
+      privacy: 'Privacy',
+      terms: 'Terms of use',
+      security: 'Security',
+      pricing: 'Pricing',
+      desktop: 'Web version',
+      language: 'English',
+      made: 'Made for working with documents without friction.',
+    },
+  } satisfies Record<Language, Record<string, string>>
+  const content = footerText[language]
+
+  return (
+    <footer className="site-footer">
+      <div className="footer-main">
+        <section className="footer-brand" aria-label="SpartaPDF">
+          <button
+            className="footer-logo"
+            type="button"
+            aria-label="SpartaPDF - Inicio"
+            onClick={() => onSelectTool('scanner')}
+          >
+            <img src="/sparta-mark.png" alt="" aria-hidden="true" />
+            <span>
+              Sparta<strong>PDF</strong>
+            </span>
+          </button>
+          <p>{content.tagline}</p>
+        </section>
+
+        <FooterColumn title={content.tools}>
+          <button type="button" onClick={() => onSelectTool('scanner')}>
+            {content.imagePdf}
+          </button>
+          <button type="button" onClick={() => onSelectTool('merge')}>
+            {content.mergePdf}
+          </button>
+          <button type="button" onClick={() => onSelectTool('split')}>
+            {content.splitPdf}
+          </button>
+          <button type="button" onClick={() => onSelectTool('watermark')}>
+            {content.watermarkPdf}
+          </button>
+        </FooterColumn>
+
+        <FooterColumn title={content.company}>
+          <button type="button" onClick={() => onOpenInfo('about')}>
+            {content.about}
+          </button>
+          <button type="button" onClick={() => onOpenInfo('contact')}>
+            {content.contact}
+          </button>
+          <button type="button" onClick={() => onOpenInfo('help')}>
+            {content.help}
+          </button>
+        </FooterColumn>
+
+        <FooterColumn title={content.product}>
+          <button type="button" onClick={() => onOpenInfo('privacy')}>
+            {content.security}
+          </button>
+          <button type="button" onClick={() => onOpenInfo('help')}>
+            {content.desktop}
+          </button>
+          <button type="button" onClick={() => onOpenInfo('contact')}>
+            {content.pricing}
+          </button>
+        </FooterColumn>
+
+        <FooterColumn title={content.legal}>
+          <button type="button" onClick={() => onOpenInfo('privacy')}>
+            {content.privacy}
+          </button>
+          <button type="button" onClick={() => onOpenInfo('help')}>
+            {content.terms}
+          </button>
+        </FooterColumn>
+      </div>
+
+      <div className="footer-social" aria-label="Redes sociales">
+        <span>in</span>
+        <span>f</span>
+        <span>yt</span>
+        <span>X</span>
+      </div>
+
+      <div className="footer-bottom">
+        <p>(c) 2026 SpartaPDF - {content.made}</p>
+        <div>
+          <button type="button" onClick={() => onOpenInfo('privacy')}>
+            {content.privacy}
+          </button>
+          <button type="button" onClick={() => onOpenInfo('contact')}>
+            {content.contact}
+          </button>
+          <span>{content.language}</span>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+function FooterColumn({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="footer-column">
+      <h2>{title}</h2>
+      {children}
+    </section>
+  )
 }
 
 function TrustAndHowItWorks({

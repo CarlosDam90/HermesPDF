@@ -511,6 +511,142 @@ button:disabled {
   line-height: 1.5;
 }
 
+.site-footer {
+  display: grid;
+  margin: 34px -32px 0;
+  border-top: 1px solid #edf0f4;
+  background: #ffffff;
+  color: #111827;
+}
+
+.footer-main {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.4fr) repeat(4, minmax(130px, 1fr));
+  gap: 42px;
+  width: min(1180px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 38px 0 30px;
+}
+
+.footer-brand {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.footer-logo {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #111827;
+  cursor: pointer;
+  font: inherit;
+}
+
+.footer-logo img {
+  width: 34px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.footer-logo span {
+  color: #111827;
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.footer-logo strong {
+  color: #b9801f;
+}
+
+.footer-brand p {
+  max-width: 260px;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.footer-column {
+  display: grid;
+  align-content: start;
+  gap: 13px;
+}
+
+.footer-column h2 {
+  margin: 0 0 4px;
+  color: #111827;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.footer-column button,
+.footer-bottom button {
+  width: fit-content;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 650;
+  text-align: left;
+}
+
+.footer-column button:hover,
+.footer-bottom button:hover {
+  color: #b9801f;
+}
+
+.footer-social {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  border-top: 1px solid #edf0f4;
+  padding: 18px 0;
+}
+
+.footer-social span {
+  display: inline-flex;
+  min-width: 22px;
+  justify-content: center;
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-top: 1px solid #edf0f4;
+  padding: 18px max(32px, calc((100% - 1180px) / 2));
+  background: #f8fafc;
+}
+
+.footer-bottom p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+.footer-bottom div {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  color: #475569;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
