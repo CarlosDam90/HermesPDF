@@ -1571,89 +1571,105 @@ function ScannerWorkspace({
   onRemove: (id: string) => void
   onRotate: (id: string) => void
 }) {
+  const imageTitle = text.uploadImages
+  const imageAction = languageText(text, 'Seleccionar imagenes', 'Select images')
+
   if (images.length === 0) {
     return (
       <div className="empty-state empty-start">
         <div className="upload-only">
-          <label
-            className={`upload-hero ${isDragging ? 'is-dragging' : ''}`}
+          <UploadMedallion
+            inputRef={inputRef}
+            accept="image/*"
+            multiple
+            isDragging={isDragging}
+            title={imageTitle}
+            action={imageAction}
+            formats={['JPG', 'PNG', 'WEBP']}
+            onFileChange={onFileChange}
+            onDragLeave={onDragLeave}
             onDragOver={(event) => {
               event.preventDefault()
               onDragOver()
             }}
-            onDragLeave={onDragLeave}
             onDrop={onDrop}
-          >
-            <input ref={inputRef} type="file" accept="image/*" multiple onChange={onFileChange} />
-            <div className="upload-medallion-wrap">
-              <img className="upload-medallion" src="/upload-medallion.png" alt="" aria-hidden="true" />
-              <div className="upload-medallion-copy">
-                <strong>{text.uploadImages}</strong>
-                <span>{languageText(text, 'Seleccionar imagenes', 'Select images')}</span>
-              </div>
-            </div>
-            <span className="upload-caption">{text.uploadImages}</span>
-            <small>{text.clickSelect}</small>
-            <div className="format-pills">
-              <span>JPG</span>
-              <span>PNG</span>
-              <span>WEBP</span>
-            </div>
-          </label>
+            helperText={text.clickSelect}
+          />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="page-list">
-      {images.map((image, index) => (
-        <article className="page-card" key={image.id}>
-          <div className="page-preview">
-            <img
-              src={image.previewUrl}
-              alt={image.name}
-              style={{
-                filter: buildCssFilter(adjustments),
-                transform: `rotate(${image.rotation}deg)`,
-              }}
-            />
-          </div>
-          <div className="page-meta">
-            <div>
-              <span className="page-number">
-                {text.page} {index + 1}
-              </span>
-              <strong>{image.name}</strong>
-            </div>
-            <div className="page-actions">
-              <IconAction
-                label={languageText(text, 'Subir pagina', 'Move page up')}
-                disabled={index === 0}
-                onClick={() => onMove(image.id, -1)}
-                icon={<ArrowUp size={17} />}
-              />
-              <IconAction
-                label={languageText(text, 'Bajar pagina', 'Move page down')}
-                disabled={index === images.length - 1}
-                onClick={() => onMove(image.id, 1)}
-                icon={<ArrowDown size={17} />}
-              />
-              <IconAction
-                label={languageText(text, 'Girar', 'Rotate')}
-                onClick={() => onRotate(image.id)}
-                icon={<RotateCw size={17} />}
-              />
-              <IconAction
-                label={languageText(text, 'Eliminar', 'Delete')}
-                danger
-                onClick={() => onRemove(image.id)}
-                icon={<Trash2 size={17} />}
+    <div className="workspace-stack">
+      <UploadMedallion
+        compact
+        inputRef={inputRef}
+        accept="image/*"
+        multiple
+        isDragging={isDragging}
+        title={imageTitle}
+        action={imageAction}
+        formats={['JPG', 'PNG', 'WEBP']}
+        onFileChange={onFileChange}
+        onDragLeave={onDragLeave}
+        onDragOver={(event) => {
+          event.preventDefault()
+          onDragOver()
+        }}
+        onDrop={onDrop}
+        helperText={text.clickSelect}
+      />
+
+      <div className="page-list">
+        {images.map((image, index) => (
+          <article className="page-card" key={image.id}>
+            <div className="page-preview">
+              <img
+                src={image.previewUrl}
+                alt={image.name}
+                style={{
+                  filter: buildCssFilter(adjustments),
+                  transform: `rotate(${image.rotation}deg)`,
+                }}
               />
             </div>
-          </div>
-        </article>
-      ))}
+            <div className="page-meta">
+              <div>
+                <span className="page-number">
+                  {text.page} {index + 1}
+                </span>
+                <strong>{image.name}</strong>
+              </div>
+              <div className="page-actions">
+                <IconAction
+                  label={languageText(text, 'Subir pagina', 'Move page up')}
+                  disabled={index === 0}
+                  onClick={() => onMove(image.id, -1)}
+                  icon={<ArrowUp size={17} />}
+                />
+                <IconAction
+                  label={languageText(text, 'Bajar pagina', 'Move page down')}
+                  disabled={index === images.length - 1}
+                  onClick={() => onMove(image.id, 1)}
+                  icon={<ArrowDown size={17} />}
+                />
+                <IconAction
+                  label={languageText(text, 'Girar', 'Rotate')}
+                  onClick={() => onRotate(image.id)}
+                  icon={<RotateCw size={17} />}
+                />
+                <IconAction
+                  label={languageText(text, 'Eliminar', 'Delete')}
+                  danger
+                  onClick={() => onRemove(image.id)}
+                  icon={<Trash2 size={17} />}
+                />
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
     </div>
   )
 }
@@ -1692,76 +1708,150 @@ function PdfWorkspace({
     return (
       <div className="empty-state empty-start">
         <div className="upload-only">
-          <label
-            className={`upload-hero ${isDragging ? 'is-dragging' : ''}`}
+          <UploadMedallion
+            inputRef={inputRef}
+            accept="application/pdf,.pdf"
+            multiple={activeTool === 'merge'}
+            isDragging={isDragging}
+            title={medallionTitle}
+            action={medallionAction}
+            formats={['PDF']}
+            onFileChange={onFileChange}
+            onDragLeave={onDragLeave}
             onDragOver={(event) => {
               event.preventDefault()
               onDragOver()
             }}
-            onDragLeave={onDragLeave}
             onDrop={onDrop}
-          >
-            <input
-              ref={inputRef}
-              type="file"
-              accept="application/pdf,.pdf"
-              multiple={activeTool === 'merge'}
-              onChange={onFileChange}
-            />
-            <div className="upload-medallion-wrap">
-              <img className="upload-medallion" src="/upload-medallion.png" alt="" aria-hidden="true" />
-              <div className="upload-medallion-copy">
-                <strong>{medallionTitle}</strong>
-                <span>{medallionAction}</span>
-              </div>
-            </div>
-            <span className="upload-caption">{medallionTitle}</span>
-            <small>{text.clickSelect}</small>
-            <div className="format-pills">
-              <span>PDF</span>
-            </div>
-          </label>
+            helperText={text.clickSelect}
+          />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="pdf-list">
-      {files.map((file, index) => (
-        <article className="pdf-card" key={file.id}>
-          <div className="pdf-icon">
-            <Files size={28} />
-          </div>
-          <div className="pdf-info">
-            <strong>{file.name}</strong>
-            <span>
-              {file.pages} {text.pdfPages} - {formatBytes(file.size)}
-            </span>
-          </div>
-          <div className="page-actions">
-            <IconAction
-              label={languageText(text, 'Subir PDF', 'Move PDF up')}
-              disabled={index === 0}
-              onClick={() => onMove(file.id, -1)}
-              icon={<ArrowUp size={17} />}
-            />
-            <IconAction
-              label={languageText(text, 'Bajar PDF', 'Move PDF down')}
-              disabled={index === files.length - 1}
-              onClick={() => onMove(file.id, 1)}
-              icon={<ArrowDown size={17} />}
-            />
-            <IconAction
-              label={languageText(text, 'Quitar PDF', 'Remove PDF')}
-              danger
-              onClick={() => onRemove(file.id)}
-              icon={<Trash2 size={17} />}
-            />
-          </div>
-        </article>
-      ))}
+    <div className="workspace-stack">
+      <UploadMedallion
+        compact
+        inputRef={inputRef}
+        accept="application/pdf,.pdf"
+        multiple={activeTool === 'merge'}
+        isDragging={isDragging}
+        title={medallionTitle}
+        action={medallionAction}
+        formats={['PDF']}
+        onFileChange={onFileChange}
+        onDragLeave={onDragLeave}
+        onDragOver={(event) => {
+          event.preventDefault()
+          onDragOver()
+        }}
+        onDrop={onDrop}
+        helperText={text.clickSelect}
+      />
+
+      <div className="pdf-list">
+        {files.map((file, index) => (
+          <article className="pdf-card" key={file.id}>
+            <div className="pdf-icon">
+              <Files size={28} />
+            </div>
+            <div className="pdf-info">
+              <strong>{file.name}</strong>
+              <span>
+                {file.pages} {text.pdfPages} - {formatBytes(file.size)}
+              </span>
+            </div>
+            <div className="page-actions">
+              <IconAction
+                label={languageText(text, 'Subir PDF', 'Move PDF up')}
+                disabled={index === 0}
+                onClick={() => onMove(file.id, -1)}
+                icon={<ArrowUp size={17} />}
+              />
+              <IconAction
+                label={languageText(text, 'Bajar PDF', 'Move PDF down')}
+                disabled={index === files.length - 1}
+                onClick={() => onMove(file.id, 1)}
+                icon={<ArrowDown size={17} />}
+              />
+              <IconAction
+                label={languageText(text, 'Quitar PDF', 'Remove PDF')}
+                danger
+                onClick={() => onRemove(file.id)}
+                icon={<Trash2 size={17} />}
+              />
+            </div>
+          </article>
+        ))}
+      </div>
     </div>
+  )
+}
+
+function UploadMedallion({
+  inputRef,
+  accept,
+  multiple,
+  compact = false,
+  isDragging,
+  title,
+  action,
+  helperText,
+  formats,
+  onFileChange,
+  onDragLeave,
+  onDragOver,
+  onDrop,
+}: {
+  inputRef: RefObject<HTMLInputElement | null>
+  accept: string
+  multiple: boolean
+  compact?: boolean
+  isDragging: boolean
+  title: string
+  action: string
+  helperText: string
+  formats: string[]
+  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void
+  onDragLeave: () => void
+  onDragOver: (event: DragEvent<HTMLLabelElement>) => void
+  onDrop: (event: DragEvent<HTMLLabelElement>) => void
+}) {
+  return (
+    <label
+      className={`upload-hero ${compact ? 'is-compact' : ''} ${isDragging ? 'is-dragging' : ''}`}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        multiple={multiple}
+        onChange={onFileChange}
+      />
+      <div className="upload-medallion-wrap">
+        <img className="upload-medallion" src="/upload-medallion.png" alt="" aria-hidden="true" />
+        <div className="upload-medallion-copy">
+          <strong>{title}</strong>
+          <span>{action}</span>
+        </div>
+      </div>
+      {!compact && (
+        <>
+          <span className="upload-caption">{title}</span>
+          <small>{helperText}</small>
+          <div className="format-pills">
+            {formats.map((format) => (
+              <span key={format}>{format}</span>
+            ))}
+          </div>
+        </>
+      )}
+    </label>
   )
 }
 

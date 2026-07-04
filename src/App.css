@@ -843,6 +843,11 @@ button:disabled {
   background: transparent;
 }
 
+.workspace-stack {
+  display: grid;
+  gap: 18px;
+}
+
 .scan-overlay {
   position: absolute;
   inset: 0;
@@ -1058,6 +1063,17 @@ button:disabled {
     filter 160ms ease;
 }
 
+.upload-hero.is-compact {
+  width: 100%;
+  min-height: 0;
+  justify-items: center;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 8px;
+  padding: 14px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+}
+
 .upload-hero input {
   display: none;
 }
@@ -1074,6 +1090,10 @@ button:disabled {
   width: min(430px, 58vw);
   max-width: 100%;
   aspect-ratio: 1;
+}
+
+.upload-hero.is-compact .upload-medallion-wrap {
+  width: min(190px, 42vw);
 }
 
 .upload-medallion {
@@ -1126,6 +1146,24 @@ button:disabled {
   font-weight: 900;
   line-height: 1.06;
   text-wrap: balance;
+}
+
+.upload-hero.is-compact .upload-medallion-copy {
+  right: 18%;
+  bottom: 31%;
+  left: 18%;
+  gap: 4px;
+  padding: 6px 7px;
+}
+
+.upload-hero.is-compact .upload-medallion-copy strong {
+  font-size: clamp(0.5rem, 0.78vw, 0.68rem);
+}
+
+.upload-hero.is-compact .upload-medallion-copy span {
+  min-height: 18px;
+  padding: 0 6px;
+  font-size: clamp(0.44rem, 0.56vw, 0.52rem);
 }
 
 .upload-medallion-copy span {
