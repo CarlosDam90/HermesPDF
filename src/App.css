@@ -10,36 +10,36 @@
 .workspace {
   width: 100%;
   margin: 0 auto;
-  padding: 26px 32px 34px;
+  padding: 0 32px 34px;
 }
 
 .site-navbar {
   position: relative;
   display: flex;
-  min-height: 60px;
+  min-height: 58px;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  margin: -26px -32px 28px;
+  gap: 22px;
+  margin: 0 -32px 0;
   border: 0;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.96);
+  border-bottom: 1px solid #edf0f4;
   border-radius: 0;
-  padding: 8px 38px;
+  padding: 0 32px;
   background: #ffffff;
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  box-shadow: none;
 }
 
 .site-brand {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
 }
 
 .site-mark-image {
   display: block;
-  width: 34px;
-  height: 42px;
+  width: 30px;
+  height: 36px;
   object-fit: contain;
   object-position: left center;
 }
@@ -50,7 +50,7 @@
   gap: 2px;
   margin: 0;
   color: #0f172a;
-  font-size: 1.22rem;
+  font-size: 1.12rem;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -71,17 +71,19 @@
   min-width: 0;
   flex: 1;
   align-items: center;
-  gap: clamp(14px, 2vw, 28px);
+  gap: 0;
 }
 
 .site-links button {
+  position: relative;
   cursor: pointer;
   border: 0;
-  padding: 6px 0;
+  min-height: 58px;
+  padding: 0 14px;
   background: transparent;
   color: #64748b;
-  font-size: 0.94rem;
-  font-weight: 780;
+  font-size: 0.86rem;
+  font-weight: 720;
   white-space: nowrap;
 }
 
@@ -89,13 +91,24 @@
   color: #0f172a;
 }
 
+.site-links button:hover::after {
+  position: absolute;
+  right: 12px;
+  bottom: 0;
+  left: 12px;
+  height: 2px;
+  border-radius: 999px 999px 0 0;
+  background: #d7a342;
+  content: '';
+}
+
 .menu-button {
   display: grid;
-  width: 46px;
-  height: 46px;
+  width: 38px;
+  height: 38px;
   cursor: pointer;
   place-items: center;
-  border: 1px solid rgba(203, 213, 225, 0.9);
+  border: 1px solid transparent;
   border-radius: 8px;
   background: #ffffff;
   color: #64748b;
@@ -142,11 +155,15 @@
 }
 
 .topbar {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 20px;
-  margin-bottom: 18px;
+  min-height: 112px;
+  margin: 0;
+  padding: 22px 300px 12px;
+  text-align: center;
 }
 
 .brand-area {
@@ -171,11 +188,11 @@
 }
 
 .eyebrow {
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   color: #64748b;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 760;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -198,8 +215,9 @@ p {
 
 h1 {
   color: #111827;
-  font-size: clamp(1.8rem, 3.6vw, 3.2rem);
-  line-height: 1.02;
+  font-size: clamp(2rem, 3vw, 2.95rem);
+  line-height: 1.08;
+  letter-spacing: 0;
 }
 
 .topbar-actions,
@@ -209,49 +227,75 @@ h1 {
   gap: 8px;
 }
 
+.topbar-actions {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
 .privacy-pill {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 34px;
   align-items: center;
   gap: 7px;
-  border: 1px solid rgba(240, 198, 107, 0.36);
+  border: 1px solid rgba(226, 232, 240, 0.95);
   border-radius: 8px;
-  padding: 0 11px;
-  background: #fffbeb;
-  color: #9b6b14;
-  font-size: 0.9rem;
-  font-weight: 850;
+  padding: 0 10px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 760;
 }
 
 .tool-tabs {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 16px;
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0 0 24px;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #e8edf4;
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .tool-tabs button {
+  position: relative;
   display: flex;
-  min-height: 46px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border: 1px solid rgba(203, 213, 225, 0.92);
-  border-radius: 8px;
-  background: #ffffff;
+  gap: 7px;
+  border: 0;
+  border-radius: 0;
+  padding: 0 16px;
+  background: transparent;
   color: #475569;
-  font-weight: 850;
+  font-size: 0.9rem;
+  font-weight: 740;
 }
 
 .tool-tabs button:hover {
-  border-color: rgba(240, 198, 107, 0.54);
-  background: #fffbeb;
+  color: #111827;
+  background: transparent;
 }
 
 .tool-tabs button.is-active {
-  border-color: #f0c66b;
-  background: linear-gradient(135deg, #f8d979, #c9932f);
-  color: #061120;
+  border-color: transparent;
+  background: transparent;
+  color: #b9801f;
+}
+
+.tool-tabs button.is-active::after {
+  position: absolute;
+  right: 12px;
+  bottom: 0;
+  left: 12px;
+  height: 3px;
+  border-radius: 999px 999px 0 0;
+  background: #d7a342;
+  content: '';
 }
 
 button {
