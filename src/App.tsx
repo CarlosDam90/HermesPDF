@@ -1424,8 +1424,8 @@ function ScannerWorkspace({
             onDrop={onDrop}
           >
             <input ref={inputRef} type="file" accept="image/*" multiple onChange={onFileChange} />
-            <ImagePlus size={58} />
-            <span>{text.uploadImages}</span>
+            <img className="upload-medallion" src="/upload-medallion.png" alt="" aria-hidden="true" />
+            <span className="upload-caption">{text.uploadImages}</span>
             <small>{text.clickSelect}</small>
             <div className="format-pills">
               <span>JPG</span>
@@ -1516,8 +1516,6 @@ function PdfWorkspace({
   onMove: (id: string, direction: -1 | 1) => void
   onRemove: (id: string) => void
 }) {
-  const ToolIcon = toolIcons[activeTool]
-
   if (files.length === 0) {
     return (
       <div className="empty-state empty-start">
@@ -1538,8 +1536,8 @@ function PdfWorkspace({
               multiple={activeTool === 'merge'}
               onChange={onFileChange}
             />
-            <ToolIcon size={58} />
-            <span>{text.uploadPdf}</span>
+            <img className="upload-medallion" src="/upload-medallion.png" alt="" aria-hidden="true" />
+            <span className="upload-caption">{text.uploadPdf}</span>
             <small>{text.clickSelect}</small>
             <div className="format-pills">
               <span>PDF</span>
