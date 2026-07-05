@@ -1969,12 +1969,10 @@ async function renderImageToJpeg(image: PageImage) {
   const bitmap = await createImageBitmap(image.file)
   const rotatedCanvas = drawRotatedImage(bitmap, image.rotation)
   const openCvCanvas = await cropDocumentWithOpenCv(rotatedCanvas)
-  const perspectiveCanvas = openCvCanvas ?? cropDocumentPerspective(rotatedCanvas)
-  const croppedCanvas = perspectiveCanvas ?? cropDocument(rotatedCanvas)
-  const straightenedCanvas = straightenDocument(croppedCanvas)
-  const refinedCanvas = cropDocument(straightenedCanvas)
+  const scannedCanvas = openCvCanvas ?? cropDocumentPerspective(rotatedCanvas) ?? cropDocument(rotatedCanvas)
+  const refinedCanvas = openCvCanvas ? scannedCanvas : cropDocument(straightenDocument(scannedCanvas))
   const enhancedCanvas = applySmartScannerEffect(refinedCanvas)
-  const outputCanvas = cropDocument(enhancedCanvas)
+  const outputCanvas = openCvCanvas ? enhancedCanvas : cropDocument(enhancedCanvas)
   const bytes = await canvasToJpegBytes(outputCanvas)
   bitmap.close()
 
@@ -1999,8 +1997,11 @@ type CvRuntime = {
   CHAIN_APPROX_SIMPLE: number
   MORPH_RECT: number
   MORPH_CLOSE: number
+  MORPH_OPEN: number
   INTER_LINEAR: number
   BORDER_REPLICATE: number
+  THRESH_BINARY: number
+  THRESH_OTSU: number
   imread: (source: HTMLCanvasElement) => CvMat
   imshow: (target: HTMLCanvasElement, source: CvMat) => void
   cvtColor: (source: CvMat, target: CvMat, code: number) => void
@@ -2013,6 +2014,7 @@ type CvRuntime = {
     borderType?: number,
   ) => void
   Canny: (source: CvMat, target: CvMat, threshold1: number, threshold2: number) => void
+  threshold: (source: CvMat, target: CvMat, threshold: number, maxValue: number, type: number) => void
   getStructuringElement: (shape: number, size: unknown) => CvMat
   morphologyEx: (source: CvMat, target: CvMat, operation: number, kernel: CvMat) => void
   findContours: (
@@ -2116,18 +2118,41 @@ function detectDocumentQuadWithOpenCv(cv: CvRuntime, canvas: HTMLCanvasElement) 
   const gray = new cv.Mat()
   const blurred = new cv.Mat()
   const edges = new cv.Mat()
-  const contours = new cv.MatVector()
-  const hierarchy = new cv.Mat()
-  const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(5, 5))
+  const paperMask = new cv.Mat()
+  const smallKernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(5, 5))
+  const largeKernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(13, 13))
 
   try {
     cv.cvtColor(source, gray, cv.COLOR_RGBA2GRAY)
     cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0)
-    cv.Canny(blurred, edges, 45, 135)
-    cv.morphologyEx(edges, edges, cv.MORPH_CLOSE, kernel)
-    cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    cv.threshold(blurred, paperMask, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+    cv.morphologyEx(paperMask, paperMask, cv.MORPH_OPEN, smallKernel)
+    cv.morphologyEx(paperMask, paperMask, cv.MORPH_CLOSE, largeKernel)
 
-    const imageArea = canvas.width * canvas.height
+    const paperQuad = findBestOpenCvQuad(cv, paperMask, canvas.width, canvas.height)
+    if (paperQuad) return paperQuad
+
+    cv.Canny(blurred, edges, 35, 110)
+    cv.morphologyEx(edges, edges, cv.MORPH_CLOSE, largeKernel)
+    return findBestOpenCvQuad(cv, edges, canvas.width, canvas.height)
+  } finally {
+    source.delete()
+    gray.delete()
+    blurred.delete()
+    edges.delete()
+    paperMask.delete()
+    smallKernel.delete()
+    largeKernel.delete()
+  }
+}
+
+function findBestOpenCvQuad(cv: CvRuntime, mask: CvMat, width: number, height: number) {
+  const contours = new cv.MatVector()
+  const hierarchy = new cv.Mat()
+  cv.findContours(mask, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+  try {
+    const imageArea = width * height
     let bestQuad: Quad | null = null
     let bestArea = 0
 
@@ -2135,7 +2160,7 @@ function detectDocumentQuadWithOpenCv(cv: CvRuntime, canvas: HTMLCanvasElement) 
       const contour = contours.get(index)
       const area = cv.contourArea(contour)
 
-      if (area < imageArea * 0.12 || area < bestArea) {
+      if (area < imageArea * 0.1 || area < bestArea || area > imageArea * 0.985) {
         contour.delete()
         continue
       }
@@ -2147,10 +2172,10 @@ function detectDocumentQuadWithOpenCv(cv: CvRuntime, canvas: HTMLCanvasElement) 
       if (!candidate) continue
 
       const ordered = orderQuadPoints(candidate)
-      const width = Math.max(distance(ordered.topLeft, ordered.topRight), distance(ordered.bottomLeft, ordered.bottomRight))
-      const height = Math.max(distance(ordered.topLeft, ordered.bottomLeft), distance(ordered.topRight, ordered.bottomRight))
+      const quadWidth = Math.max(distance(ordered.topLeft, ordered.topRight), distance(ordered.bottomLeft, ordered.bottomRight))
+      const quadHeight = Math.max(distance(ordered.topLeft, ordered.bottomLeft), distance(ordered.topRight, ordered.bottomRight))
 
-      if (width < canvas.width * 0.25 || height < canvas.height * 0.25) continue
+      if (quadWidth < width * 0.22 || quadHeight < height * 0.22) continue
 
       bestQuad = ordered
       bestArea = area
@@ -2158,13 +2183,8 @@ function detectDocumentQuadWithOpenCv(cv: CvRuntime, canvas: HTMLCanvasElement) 
 
     return bestQuad
   } finally {
-    source.delete()
-    gray.delete()
-    blurred.delete()
-    edges.delete()
     contours.delete()
     hierarchy.delete()
-    kernel.delete()
   }
 }
 
