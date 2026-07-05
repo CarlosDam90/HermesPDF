@@ -496,7 +496,7 @@ function App() {
       }
 
       await downloadPdf(pdf, `imagen-a-pdf-${today()}.pdf`)
-    }, 3200)
+    }, 8500)
   }
 
   const mergePdfs = async () => {
