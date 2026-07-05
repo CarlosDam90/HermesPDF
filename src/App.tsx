@@ -54,6 +54,7 @@ const A4 = {
 const SCANNER_PDF_MARGIN = 24
 
 const toolOrder: Tool[] = ['scanner', 'merge', 'split', 'rotate', 'delete', 'watermark']
+const enableAdvancedImageScan = false
 
 const toolRoutes: Record<Tool, string> = {
   scanner: '/imagen-a-pdf',
@@ -160,12 +161,12 @@ const uiText = {
     scannerTitleA: 'Convierte imagenes en',
     scannerTitleB: 'en segundos',
     scannerText:
-      'Crea documentos PDF profesionales desde tus imagenes, con recorte automatico y procesamiento privado en tu navegador.',
+      'Crea documentos PDF profesionales desde tus imagenes, manteniendo tus archivos privados en tu navegador.',
     uploadImages: 'Arrastra tus imagenes aqui',
     clickSelect: 'o haz clic para seleccionar',
     chooseExplorer: 'Elegir desde el explorador',
-    smartScan: 'Escaneo inteligente',
-    smartScanText: 'Detecta bordes y mejora el resultado antes de generar el PDF.',
+    smartScan: 'Conversion directa',
+    smartScanText: 'Convierte tus imagenes a PDF sin subir archivos a servidores.',
     localTitle: '100% local',
     localText: 'Tus archivos no se suben a ningun servidor.',
     freeTitle: 'Gratis y sin limites',
@@ -189,7 +190,7 @@ const uiText = {
     stepOneTitle: 'Sube tus archivos',
     stepOneText: 'Arrastra imagenes o PDFs a la zona de subida de la herramienta que necesites.',
     stepTwoTitle: 'Ajusta el resultado',
-    stepTwoText: 'Ordena paginas, gira, recorta automaticamente o elige rangos segun el caso.',
+    stepTwoText: 'Ordena paginas, gira imagenes o elige rangos segun el caso.',
     stepThreeTitle: 'Descarga al instante',
     stepThreeText: 'Genera el archivo final y descargalo directamente desde tu dispositivo.',
     seoKicker: 'Herramientas PDF gratis',
@@ -229,12 +230,12 @@ const uiText = {
     scannerTitleA: 'Convert images to',
     scannerTitleB: 'in seconds',
     scannerText:
-      'Create professional PDF documents from your images, with automatic cropping and private processing in your browser.',
+      'Create professional PDF documents from your images while keeping files private in your browser.',
     uploadImages: 'Drop your images here',
     clickSelect: 'or click to select',
     chooseExplorer: 'Choose from file explorer',
-    smartScan: 'Smart scanning',
-    smartScanText: 'Detects borders and improves the result before creating the PDF.',
+    smartScan: 'Direct conversion',
+    smartScanText: 'Convert your images to PDF without uploading files to servers.',
     localTitle: '100% local',
     localText: 'Your files are not uploaded to any server.',
     freeTitle: 'Free and unlimited',
@@ -258,7 +259,7 @@ const uiText = {
     stepOneTitle: 'Upload your files',
     stepOneText: 'Drop images or PDFs into the upload area for the tool you need.',
     stepTwoTitle: 'Adjust the result',
-    stepTwoText: 'Reorder pages, rotate, crop automatically or choose ranges when needed.',
+    stepTwoText: 'Reorder pages, rotate images or choose ranges when needed.',
     stepThreeTitle: 'Download instantly',
     stepThreeText: 'Create the final file and download it directly from your device.',
     seoKicker: 'Free PDF tools',
@@ -1029,7 +1030,7 @@ function TrustAndHowItWorks({
     es: [
       {
         title: 'Convertir imagenes a PDF',
-        body: 'Crea un PDF a partir de imagenes JPG, PNG o WEBP con deteccion de bordes, enderezado automatico y mejora de iluminacion.',
+        body: 'Crea un PDF a partir de imagenes JPG, PNG o WEBP de forma directa, rapida y privada desde el navegador.',
       },
       {
         title: 'Unir PDF gratis',
@@ -1055,7 +1056,7 @@ function TrustAndHowItWorks({
     en: [
       {
         title: 'Convert images to PDF',
-        body: 'Create a PDF from JPG, PNG or WEBP images with border detection, automatic straightening and lighting enhancement.',
+        body: 'Create a PDF from JPG, PNG or WEBP images directly, quickly and privately in the browser.',
       },
       {
         title: 'Merge PDF for free',
@@ -1459,29 +1460,11 @@ function ScannerControls({
         <small>
           {languageText(
             text,
-            'JPG, PNG o WebP. El recorte y el PDF se hacen en tu navegador.',
-            'JPG, PNG or WebP. Cropping and PDF creation happen in your browser.',
+            'JPG, PNG o WebP. El PDF se crea en tu navegador.',
+            'JPG, PNG or WebP. PDF creation happens in your browser.',
           )}
         </small>
       </label>
-
-      <div className="control-group">
-        <div className="control-heading">
-          <FileImage size={18} />
-          <span>{languageText(text, 'Escaneo automatico', 'Automatic scanning')}</span>
-        </div>
-
-        <div className="auto-scan-card">
-          <strong>{languageText(text, 'Escaneo inteligente activo', 'Smart scan active')}</strong>
-          <p>
-            {languageText(
-              text,
-              'Detecta bordes, recorta, endereza y mejora la iluminacion automaticamente al generar el PDF.',
-              'Detects borders, crops, straightens and improves lighting automatically when creating the PDF.',
-            )}
-          </p>
-        </div>
-      </div>
 
       <div className="stats-strip">
         <span>
@@ -1969,12 +1952,10 @@ function IconAction({
 async function renderImageToJpeg(image: PageImage) {
   const bitmap = await createImageBitmap(image.file)
   const rotatedCanvas = drawRotatedImage(bitmap, image.rotation)
-  const openCvCanvas = await cropDocumentWithOpenCv(rotatedCanvas)
-  const scannedCanvas = openCvCanvas ?? cropDocumentPerspective(rotatedCanvas) ?? cropDocument(rotatedCanvas)
-  const refinedCanvas = openCvCanvas ? scannedCanvas : cropDocument(straightenDocument(scannedCanvas))
-  const tightenedCanvas = cropDocument(refinedCanvas)
-  const enhancedCanvas = applySmartScannerEffect(tightenedCanvas)
-  const outputCanvas = cropDocument(enhancedCanvas)
+
+  const outputCanvas = enableAdvancedImageScan
+    ? await renderAdvancedScannedImage(rotatedCanvas)
+    : rotatedCanvas
   const bytes = await canvasToJpegBytes(outputCanvas)
   bitmap.close()
 
@@ -1983,6 +1964,15 @@ async function renderImageToJpeg(image: PageImage) {
     width: outputCanvas.width,
     height: outputCanvas.height,
   }
+}
+
+async function renderAdvancedScannedImage(canvas: HTMLCanvasElement) {
+  const openCvCanvas = await cropDocumentWithOpenCv(canvas)
+  const scannedCanvas = openCvCanvas ?? cropDocumentPerspective(canvas) ?? cropDocument(canvas)
+  const refinedCanvas = openCvCanvas ? scannedCanvas : cropDocument(straightenDocument(scannedCanvas))
+  const tightenedCanvas = cropDocument(refinedCanvas)
+  const enhancedCanvas = applySmartScannerEffect(tightenedCanvas)
+  return cropDocument(enhancedCanvas)
 }
 
 let openCvPromise: Promise<CvRuntime> | null = null
