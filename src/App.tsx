@@ -1186,7 +1186,7 @@ function InfoModal({
           'SpartaPDF esta disenado para trabajar con tus documentos directamente en el navegador siempre que la herramienta lo permita.',
           'Los archivos que seleccionas se procesan en tu dispositivo y no se suben a un servidor de SpartaPDF para crear, unir, dividir, rotar o modificar PDFs.',
           'Al cerrar o recargar la pagina, los archivos cargados dejan de estar disponibles en la sesion actual.',
-          'Actualmente no usamos cookies de analitica, publicidad ni seguimiento. Si en el futuro se anaden servicios que requieran consentimiento, se mostrara un aviso claro antes de activarlos.',
+          'Usamos Google Tag Manager y herramientas de analitica para conocer visitas, paginas usadas y rendimiento general de la web. Estas metricas nos ayudan a mejorar SpartaPDF y no se usan para procesar tus documentos.',
         ],
       },
       terms: {
@@ -1232,7 +1232,7 @@ function InfoModal({
           'SpartaPDF is designed to work with your documents directly in the browser whenever the tool allows it.',
           'The files you select are processed on your device and are not uploaded to a SpartaPDF server to create, merge, split, rotate or edit PDFs.',
           'When you close or reload the page, loaded files are no longer available in the current session.',
-          'We currently do not use analytics, advertising or tracking cookies. If services requiring consent are added in the future, a clear notice will be shown before enabling them.',
+          'We use Google Tag Manager and analytics tools to understand visits, used pages and general website performance. These metrics help us improve SpartaPDF and are not used to process your documents.',
         ],
       },
       terms: {
