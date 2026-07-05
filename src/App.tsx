@@ -1968,7 +1968,8 @@ function IconAction({
 async function renderImageToJpeg(image: PageImage) {
   const bitmap = await createImageBitmap(image.file)
   const rotatedCanvas = drawRotatedImage(bitmap, image.rotation)
-  const perspectiveCanvas = cropDocumentPerspective(rotatedCanvas)
+  const openCvCanvas = await cropDocumentWithOpenCv(rotatedCanvas)
+  const perspectiveCanvas = openCvCanvas ?? cropDocumentPerspective(rotatedCanvas)
   const croppedCanvas = perspectiveCanvas ?? cropDocument(rotatedCanvas)
   const straightenedCanvas = straightenDocument(croppedCanvas)
   const refinedCanvas = cropDocument(straightenedCanvas)
@@ -1981,6 +1982,283 @@ async function renderImageToJpeg(image: PageImage) {
     bytes,
     width: outputCanvas.width,
     height: outputCanvas.height,
+  }
+}
+
+let openCvPromise: Promise<CvRuntime> | null = null
+
+type CvRuntime = {
+  Mat: new () => CvMat
+  MatVector: new () => CvMatVector
+  Size: new (width: number, height: number) => unknown
+  Point: new (x: number, y: number) => unknown
+  Scalar: new (...values: number[]) => unknown
+  CV_32FC2: number
+  COLOR_RGBA2GRAY: number
+  RETR_EXTERNAL: number
+  CHAIN_APPROX_SIMPLE: number
+  MORPH_RECT: number
+  MORPH_CLOSE: number
+  INTER_LINEAR: number
+  BORDER_REPLICATE: number
+  imread: (source: HTMLCanvasElement) => CvMat
+  imshow: (target: HTMLCanvasElement, source: CvMat) => void
+  cvtColor: (source: CvMat, target: CvMat, code: number) => void
+  GaussianBlur: (
+    source: CvMat,
+    target: CvMat,
+    size: unknown,
+    sigmaX: number,
+    sigmaY?: number,
+    borderType?: number,
+  ) => void
+  Canny: (source: CvMat, target: CvMat, threshold1: number, threshold2: number) => void
+  getStructuringElement: (shape: number, size: unknown) => CvMat
+  morphologyEx: (source: CvMat, target: CvMat, operation: number, kernel: CvMat) => void
+  findContours: (
+    source: CvMat,
+    contours: CvMatVector,
+    hierarchy: CvMat,
+    mode: number,
+    method: number,
+  ) => void
+  contourArea: (contour: CvMat) => number
+  arcLength: (curve: CvMat, closed: boolean) => number
+  approxPolyDP: (curve: CvMat, approxCurve: CvMat, epsilon: number, closed: boolean) => void
+  matFromArray: (rows: number, cols: number, type: number, array: number[]) => CvMat
+  getPerspectiveTransform: (source: CvMat, target: CvMat) => CvMat
+  warpPerspective: (
+    source: CvMat,
+    target: CvMat,
+    transform: CvMat,
+    size: unknown,
+    flags?: number,
+    borderMode?: number,
+    borderValue?: unknown,
+  ) => void
+}
+
+type CvMat = {
+  rows: number
+  cols: number
+  data32S: Int32Array
+  delete: () => void
+}
+
+type CvMatVector = {
+  size: () => number
+  get: (index: number) => CvMat
+  delete: () => void
+}
+
+async function loadOpenCv() {
+  if (!openCvPromise) {
+    openCvPromise = import('@techstark/opencv-js').then(async (module) => {
+      const candidate = (module as unknown as { default?: unknown }).default ?? module
+      const cv = candidate instanceof Promise ? await candidate : candidate
+      const runtime = cv as CvRuntime & { onRuntimeInitialized?: () => void }
+
+      if (runtime.Mat) return runtime
+
+      await new Promise<void>((resolve) => {
+        runtime.onRuntimeInitialized = resolve
+      })
+
+      return runtime
+    })
+  }
+
+  return openCvPromise
+}
+
+async function cropDocumentWithOpenCv(canvas: HTMLCanvasElement) {
+  try {
+    const cv = await loadOpenCv()
+    const maxSide = 1400
+    const scale = Math.min(1, maxSide / Math.max(canvas.width, canvas.height))
+    const sample = document.createElement('canvas')
+    const sampleContext = sample.getContext('2d')
+    if (!sampleContext) return null
+
+    sample.width = Math.max(1, Math.round(canvas.width * scale))
+    sample.height = Math.max(1, Math.round(canvas.height * scale))
+    sampleContext.drawImage(canvas, 0, 0, sample.width, sample.height)
+
+    const quad = detectDocumentQuadWithOpenCv(cv, sample)
+    if (!quad) return null
+
+    const unscale = 1 / scale
+    const sourceQuad = {
+      topLeft: scalePoint(quad.topLeft, unscale),
+      topRight: scalePoint(quad.topRight, unscale),
+      bottomRight: scalePoint(quad.bottomRight, unscale),
+      bottomLeft: scalePoint(quad.bottomLeft, unscale),
+    }
+
+    return warpQuadWithOpenCv(cv, canvas, sourceQuad)
+  } catch {
+    return null
+  }
+}
+
+function detectDocumentQuadWithOpenCv(cv: CvRuntime, canvas: HTMLCanvasElement) {
+  const source = cv.imread(canvas)
+  const gray = new cv.Mat()
+  const blurred = new cv.Mat()
+  const edges = new cv.Mat()
+  const contours = new cv.MatVector()
+  const hierarchy = new cv.Mat()
+  const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(5, 5))
+
+  try {
+    cv.cvtColor(source, gray, cv.COLOR_RGBA2GRAY)
+    cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0)
+    cv.Canny(blurred, edges, 45, 135)
+    cv.morphologyEx(edges, edges, cv.MORPH_CLOSE, kernel)
+    cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+    const imageArea = canvas.width * canvas.height
+    let bestQuad: Quad | null = null
+    let bestArea = 0
+
+    for (let index = 0; index < contours.size(); index += 1) {
+      const contour = contours.get(index)
+      const area = cv.contourArea(contour)
+
+      if (area < imageArea * 0.12 || area < bestArea) {
+        contour.delete()
+        continue
+      }
+
+      const perimeter = cv.arcLength(contour, true)
+      const candidate = approximateContourToQuad(cv, contour, perimeter)
+      contour.delete()
+
+      if (!candidate) continue
+
+      const ordered = orderQuadPoints(candidate)
+      const width = Math.max(distance(ordered.topLeft, ordered.topRight), distance(ordered.bottomLeft, ordered.bottomRight))
+      const height = Math.max(distance(ordered.topLeft, ordered.bottomLeft), distance(ordered.topRight, ordered.bottomRight))
+
+      if (width < canvas.width * 0.25 || height < canvas.height * 0.25) continue
+
+      bestQuad = ordered
+      bestArea = area
+    }
+
+    return bestQuad
+  } finally {
+    source.delete()
+    gray.delete()
+    blurred.delete()
+    edges.delete()
+    contours.delete()
+    hierarchy.delete()
+    kernel.delete()
+  }
+}
+
+function approximateContourToQuad(cv: CvRuntime, contour: CvMat, perimeter: number) {
+  const epsilons = [0.018, 0.024, 0.032, 0.045, 0.06]
+
+  for (const epsilon of epsilons) {
+    const approx = new cv.Mat()
+    cv.approxPolyDP(contour, approx, perimeter * epsilon, true)
+
+    if (approx.rows === 4 && approx.data32S.length >= 8) {
+      const points = matToPoints(approx)
+      approx.delete()
+      return points
+    }
+
+    approx.delete()
+  }
+
+  return null
+}
+
+function matToPoints(mat: CvMat) {
+  const points: Point[] = []
+
+  for (let index = 0; index < mat.rows; index += 1) {
+    points.push({
+      x: mat.data32S[index * 2],
+      y: mat.data32S[index * 2 + 1],
+    })
+  }
+
+  return points
+}
+
+function orderQuadPoints(points: Point[]): Quad {
+  let topLeft = points[0]
+  let topRight = points[0]
+  let bottomRight = points[0]
+  let bottomLeft = points[0]
+
+  for (const point of points) {
+    if (point.x + point.y < topLeft.x + topLeft.y) topLeft = point
+    if (point.x - point.y > topRight.x - topRight.y) topRight = point
+    if (point.x + point.y > bottomRight.x + bottomRight.y) bottomRight = point
+    if (point.y - point.x > bottomLeft.y - bottomLeft.x) bottomLeft = point
+  }
+
+  return { topLeft, topRight, bottomRight, bottomLeft }
+}
+
+function warpQuadWithOpenCv(cv: CvRuntime, canvas: HTMLCanvasElement, quad: Quad) {
+  const width = Math.max(distance(quad.topLeft, quad.topRight), distance(quad.bottomLeft, quad.bottomRight))
+  const height = Math.max(distance(quad.topLeft, quad.bottomLeft), distance(quad.topRight, quad.bottomRight))
+  const outputWidth = Math.max(1, Math.round(width))
+  const outputHeight = Math.max(1, Math.round(height))
+
+  if (outputWidth < canvas.width * 0.2 || outputHeight < canvas.height * 0.2) return null
+
+  const source = cv.imread(canvas)
+  const destination = new cv.Mat()
+  const sourcePoints = cv.matFromArray(4, 1, cv.CV_32FC2, [
+    quad.topLeft.x,
+    quad.topLeft.y,
+    quad.topRight.x,
+    quad.topRight.y,
+    quad.bottomRight.x,
+    quad.bottomRight.y,
+    quad.bottomLeft.x,
+    quad.bottomLeft.y,
+  ])
+  const targetPoints = cv.matFromArray(4, 1, cv.CV_32FC2, [
+    0,
+    0,
+    outputWidth - 1,
+    0,
+    outputWidth - 1,
+    outputHeight - 1,
+    0,
+    outputHeight - 1,
+  ])
+  const transform = cv.getPerspectiveTransform(sourcePoints, targetPoints)
+  const output = document.createElement('canvas')
+
+  try {
+    cv.warpPerspective(
+      source,
+      destination,
+      transform,
+      new cv.Size(outputWidth, outputHeight),
+      cv.INTER_LINEAR,
+      cv.BORDER_REPLICATE,
+      new cv.Scalar(),
+    )
+    output.width = outputWidth
+    output.height = outputHeight
+    cv.imshow(output, destination)
+    return output
+  } finally {
+    source.delete()
+    destination.delete()
+    sourcePoints.delete()
+    targetPoints.delete()
+    transform.delete()
   }
 }
 
