@@ -2006,40 +2006,142 @@ function cropDocument(canvas: HTMLCanvasElement) {
 
 function findDocumentBounds(imageData: ImageData, width: number, height: number) {
   const pixels = imageData.data
-  let minX = width
-  let minY = height
-  let maxX = 0
-  let maxY = 0
+  const step = Math.max(2, Math.floor(Math.min(width, height) / 700))
+  const borderColor = sampleBorderColor(pixels, width, height, step)
+  const rowScores = new Array<number>(height).fill(0)
+  const columnScores = new Array<number>(width).fill(0)
   let hits = 0
-  const step = Math.max(1, Math.floor(Math.min(width, height) / 900))
 
-  for (let y = 0; y < height; y += step) {
-    for (let x = 0; x < width; x += step) {
-      const index = (y * width + x) * 4
-      const red = pixels[index]
-      const green = pixels[index + 1]
-      const blue = pixels[index + 2]
-      const brightness = (red + green + blue) / 3
-      const colorSpread = Math.max(red, green, blue) - Math.min(red, green, blue)
-
-      if (brightness < 242 || colorSpread > 18) {
-        minX = Math.min(minX, x)
-        minY = Math.min(minY, y)
-        maxX = Math.max(maxX, x)
-        maxY = Math.max(maxY, y)
+  for (let y = 1; y < height - 1; y += step) {
+    for (let x = 1; x < width - 1; x += step) {
+      if (isLikelyDocumentArea(pixels, width, x, y, borderColor)) {
+        rowScores[y] += 1
+        columnScores[x] += 1
         hits += 1
       }
     }
   }
 
-  if (hits < 40 || minX >= maxX || minY >= maxY) return null
+  if (hits < 80) return null
+
+  const minX = firstDenseIndex(columnScores, Math.max(3, Math.floor(height / step / 100)))
+  const maxX = lastDenseIndex(columnScores, Math.max(3, Math.floor(height / step / 100)))
+  const minY = firstDenseIndex(rowScores, Math.max(3, Math.floor(width / step / 100)))
+  const maxY = lastDenseIndex(rowScores, Math.max(3, Math.floor(width / step / 100)))
+
+  if (minX === null || maxX === null || minY === null || maxY === null) return null
+  if (minX >= maxX || minY >= maxY) return null
 
   return {
     x: minX,
     y: minY,
-    width: maxX - minX,
-    height: maxY - minY,
+    width: maxX - minX + 1,
+    height: maxY - minY + 1,
   }
+}
+
+function sampleBorderColor(
+  pixels: Uint8ClampedArray,
+  width: number,
+  height: number,
+  step: number,
+) {
+  let red = 0
+  let green = 0
+  let blue = 0
+  let count = 0
+
+  for (let x = 0; x < width; x += step) {
+    for (const y of [0, height - 1]) {
+      const index = (y * width + x) * 4
+      red += pixels[index]
+      green += pixels[index + 1]
+      blue += pixels[index + 2]
+      count += 1
+    }
+  }
+
+  for (let y = 0; y < height; y += step) {
+    for (const x of [0, width - 1]) {
+      const index = (y * width + x) * 4
+      red += pixels[index]
+      green += pixels[index + 1]
+      blue += pixels[index + 2]
+      count += 1
+    }
+  }
+
+  return {
+    red: red / count,
+    green: green / count,
+    blue: blue / count,
+  }
+}
+
+function isLikelyDocumentArea(
+  pixels: Uint8ClampedArray,
+  width: number,
+  x: number,
+  y: number,
+  borderColor: { red: number; green: number; blue: number },
+) {
+  const index = (y * width + x) * 4
+  const red = pixels[index]
+  const green = pixels[index + 1]
+  const blue = pixels[index + 2]
+  const brightness = (red + green + blue) / 3
+  const borderDistance =
+    Math.abs(red - borderColor.red) +
+    Math.abs(green - borderColor.green) +
+    Math.abs(blue - borderColor.blue)
+  const edgeStrength = localEdgeStrength(pixels, width, x, y)
+
+  return brightness > 118 && (borderDistance > 34 || edgeStrength > 28 || brightness > 205)
+}
+
+function localEdgeStrength(pixels: Uint8ClampedArray, width: number, x: number, y: number) {
+  const center = pixelBrightness(pixels, width, x, y)
+  const right = pixelBrightness(pixels, width, x + 1, y)
+  const bottom = pixelBrightness(pixels, width, x, y + 1)
+
+  return Math.abs(center - right) + Math.abs(center - bottom)
+}
+
+function pixelBrightness(pixels: Uint8ClampedArray, width: number, x: number, y: number) {
+  const index = (y * width + x) * 4
+  return (pixels[index] + pixels[index + 1] + pixels[index + 2]) / 3
+}
+
+function firstDenseIndex(scores: number[], threshold: number) {
+  const windowSize = Math.max(12, Math.floor(scores.length * 0.012))
+
+  for (let index = 0; index < scores.length; index += 1) {
+    if (sumWindow(scores, index, windowSize) >= threshold) return index
+  }
+
+  return null
+}
+
+function lastDenseIndex(scores: number[], threshold: number) {
+  const windowSize = Math.max(12, Math.floor(scores.length * 0.012))
+
+  for (let index = scores.length - 1; index >= 0; index -= 1) {
+    if (sumWindow(scores, index - windowSize, windowSize) >= threshold) return index
+  }
+
+  return null
+}
+
+function sumWindow(scores: number[], start: number, size: number) {
+  let sum = 0
+  const from = Math.max(0, start)
+  const to = Math.min(scores.length, from + size)
+
+  for (let index = from; index < to; index += 1) {
+    sum += scores[index]
+  }
+
+  return sum
 }
 
 function estimateDocumentSkew(imageData: ImageData, width: number, height: number) {
@@ -2129,18 +2231,31 @@ function applySmartScannerEffect(canvas: HTMLCanvasElement) {
   const context = output.getContext('2d', { willReadFrequently: true })
   if (!context) return output
 
+  const backgroundCanvas = document.createElement('canvas')
+  const backgroundContext = backgroundCanvas.getContext('2d', { willReadFrequently: true })
+  if (!backgroundContext) return output
+
+  backgroundCanvas.width = output.width
+  backgroundCanvas.height = output.height
+  backgroundContext.filter = `blur(${Math.max(18, Math.round(Math.min(output.width, output.height) * 0.035))}px)`
+  backgroundContext.drawImage(output, 0, 0)
+
   const imageData = context.getImageData(0, 0, output.width, output.height)
+  const backgroundData = backgroundContext.getImageData(0, 0, output.width, output.height)
   const pixels = imageData.data
+  const backgroundPixels = backgroundData.data
 
   for (let index = 0; index < pixels.length; index += 4) {
     const red = pixels[index]
     const green = pixels[index + 1]
     const blue = pixels[index + 2]
     const brightness = (red + green + blue) / 3
-    const backgroundLift = Math.max(0, 238 - brightness) * 0.18
-    const cleanedRed = smartChannel(red, brightness, backgroundLift)
-    const cleanedGreen = smartChannel(green, brightness, backgroundLift)
-    const cleanedBlue = smartChannel(blue, brightness, backgroundLift)
+    const backgroundBrightness =
+      (backgroundPixels[index] + backgroundPixels[index + 1] + backgroundPixels[index + 2]) / 3
+    const shadowGain = Math.min(1.95, Math.max(0.92, 245 / Math.max(70, backgroundBrightness)))
+    const cleanedRed = smartChannel(red, brightness, shadowGain)
+    const cleanedGreen = smartChannel(green, brightness, shadowGain)
+    const cleanedBlue = smartChannel(blue, brightness, shadowGain)
 
     pixels[index] = cleanedRed
     pixels[index + 1] = cleanedGreen
@@ -2151,10 +2266,10 @@ function applySmartScannerEffect(canvas: HTMLCanvasElement) {
   return output
 }
 
-function smartChannel(value: number, brightness: number, backgroundLift: number) {
-  const brightened = value + backgroundLift + 10
-  const contrasted = (brightened - 128) * 1.18 + 128
-  const cleaned = brightness > 205 ? Math.max(contrasted, 246) : contrasted
+function smartChannel(value: number, brightness: number, shadowGain: number) {
+  const normalized = value * shadowGain + 12
+  const contrasted = (normalized - 128) * 1.28 + 128
+  const cleaned = brightness > 188 ? Math.max(contrasted, 248) : contrasted
 
   return clampColor(cleaned)
 }
