@@ -1926,7 +1926,8 @@ function IconAction({
 async function renderImageToJpeg(image: PageImage) {
   const bitmap = await createImageBitmap(image.file)
   const rotatedCanvas = drawRotatedImage(bitmap, image.rotation)
-  const croppedCanvas = cropDocument(rotatedCanvas)
+  const perspectiveCanvas = cropDocumentPerspective(rotatedCanvas)
+  const croppedCanvas = perspectiveCanvas ?? cropDocument(rotatedCanvas)
   const straightenedCanvas = straightenDocument(croppedCanvas)
   const refinedCanvas = cropDocument(straightenedCanvas)
   const enhancedCanvas = applySmartScannerEffect(refinedCanvas)
@@ -1973,6 +1974,298 @@ function drawRotatedImage(bitmap: ImageBitmap, rotation: number) {
   context.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2)
 
   return canvas
+}
+
+function cropDocumentPerspective(canvas: HTMLCanvasElement) {
+  const quad = detectDocumentQuad(canvas)
+  if (!quad) return null
+
+  const output = warpQuadToCanvas(canvas, quad)
+  if (!output) return null
+
+  if (output.width < canvas.width * 0.24 || output.height < canvas.height * 0.24) {
+    return null
+  }
+
+  return output
+}
+
+type Point = { x: number; y: number }
+type Quad = { topLeft: Point; topRight: Point; bottomRight: Point; bottomLeft: Point }
+
+function detectDocumentQuad(canvas: HTMLCanvasElement) {
+  const maxSide = 420
+  const scale = Math.min(1, maxSide / Math.max(canvas.width, canvas.height))
+  const width = Math.max(1, Math.round(canvas.width * scale))
+  const height = Math.max(1, Math.round(canvas.height * scale))
+  const sample = document.createElement('canvas')
+  const context = sample.getContext('2d', { willReadFrequently: true })
+  if (!context) return null
+
+  sample.width = width
+  sample.height = height
+  context.drawImage(canvas, 0, 0, width, height)
+
+  const imageData = context.getImageData(0, 0, width, height)
+  const mask = buildPaperMask(imageData, width, height)
+  const component = findLargestMaskComponent(mask, width, height)
+  if (!component || component.points.length < width * height * 0.08) return null
+
+  const quad = componentToQuad(component.points)
+  if (!quad) return null
+
+  const unscale = 1 / scale
+  return expandQuad(
+    {
+      topLeft: scalePoint(quad.topLeft, unscale),
+      topRight: scalePoint(quad.topRight, unscale),
+      bottomRight: scalePoint(quad.bottomRight, unscale),
+      bottomLeft: scalePoint(quad.bottomLeft, unscale),
+    },
+    canvas.width,
+    canvas.height,
+    Math.round(Math.min(canvas.width, canvas.height) * 0.012),
+  )
+}
+
+function buildPaperMask(imageData: ImageData, width: number, height: number) {
+  const pixels = imageData.data
+  const mask = new Uint8Array(width * height)
+  const edgeBrightness = sampleEdgeBrightness(pixels, width, height)
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const index = (y * width + x) * 4
+      const red = pixels[index]
+      const green = pixels[index + 1]
+      const blue = pixels[index + 2]
+      const brightness = (red + green + blue) / 3
+      const saturation = Math.max(red, green, blue) - Math.min(red, green, blue)
+      const likelyPaper =
+        (brightness > Math.max(122, edgeBrightness + 14) && saturation < 86) ||
+        (brightness > 172 && saturation < 118) ||
+        brightness > 208
+
+      if (likelyPaper) {
+        mask[y * width + x] = 1
+      }
+    }
+  }
+
+  return closeMask(mask, width, height)
+}
+
+function sampleEdgeBrightness(pixels: Uint8ClampedArray, width: number, height: number) {
+  const step = Math.max(1, Math.floor(Math.min(width, height) / 80))
+  let sum = 0
+  let count = 0
+
+  for (let x = 0; x < width; x += step) {
+    for (const y of [0, height - 1]) {
+      sum += pixelBrightness(pixels, width, x, y)
+      count += 1
+    }
+  }
+
+  for (let y = 0; y < height; y += step) {
+    for (const x of [0, width - 1]) {
+      sum += pixelBrightness(pixels, width, x, y)
+      count += 1
+    }
+  }
+
+  return count > 0 ? sum / count : 128
+}
+
+function closeMask(mask: Uint8Array, width: number, height: number) {
+  return erodeMask(dilateMask(mask, width, height), width, height)
+}
+
+function dilateMask(mask: Uint8Array, width: number, height: number) {
+  const output = new Uint8Array(mask.length)
+
+  for (let y = 1; y < height - 1; y += 1) {
+    for (let x = 1; x < width - 1; x += 1) {
+      let value = 0
+
+      for (let dy = -1; dy <= 1; dy += 1) {
+        for (let dx = -1; dx <= 1; dx += 1) {
+          value = Math.max(value, mask[(y + dy) * width + x + dx])
+        }
+      }
+
+      output[y * width + x] = value
+    }
+  }
+
+  return output
+}
+
+function erodeMask(mask: Uint8Array, width: number, height: number) {
+  const output = new Uint8Array(mask.length)
+
+  for (let y = 1; y < height - 1; y += 1) {
+    for (let x = 1; x < width - 1; x += 1) {
+      let value = 1
+
+      for (let dy = -1; dy <= 1; dy += 1) {
+        for (let dx = -1; dx <= 1; dx += 1) {
+          value = Math.min(value, mask[(y + dy) * width + x + dx])
+        }
+      }
+
+      output[y * width + x] = value
+    }
+  }
+
+  return output
+}
+
+function findLargestMaskComponent(mask: Uint8Array, width: number, height: number) {
+  const visited = new Uint8Array(mask.length)
+  let best: { points: Point[] } | null = null
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const startIndex = y * width + x
+      if (!mask[startIndex] || visited[startIndex]) continue
+
+      const points: Point[] = []
+      const queue = [startIndex]
+      visited[startIndex] = 1
+
+      for (let cursor = 0; cursor < queue.length; cursor += 1) {
+        const index = queue[cursor]
+        const pointX = index % width
+        const pointY = Math.floor(index / width)
+        points.push({ x: pointX, y: pointY })
+
+        for (const next of [index - 1, index + 1, index - width, index + width]) {
+          if (next < 0 || next >= mask.length || visited[next] || !mask[next]) continue
+          const nextX = next % width
+          if (Math.abs(nextX - pointX) > 1) continue
+          visited[next] = 1
+          queue.push(next)
+        }
+      }
+
+      if (!best || points.length > best.points.length) {
+        best = { points }
+      }
+    }
+  }
+
+  return best
+}
+
+function componentToQuad(points: Point[]) {
+  if (points.length === 0) return null
+
+  let topLeft = points[0]
+  let topRight = points[0]
+  let bottomRight = points[0]
+  let bottomLeft = points[0]
+
+  for (const point of points) {
+    if (point.x + point.y < topLeft.x + topLeft.y) topLeft = point
+    if (point.x - point.y > topRight.x - topRight.y) topRight = point
+    if (point.x + point.y > bottomRight.x + bottomRight.y) bottomRight = point
+    if (point.y - point.x > bottomLeft.y - bottomLeft.x) bottomLeft = point
+  }
+
+  const width = Math.max(distance(topLeft, topRight), distance(bottomLeft, bottomRight))
+  const height = Math.max(distance(topLeft, bottomLeft), distance(topRight, bottomRight))
+
+  if (width < 40 || height < 40) return null
+
+  return { topLeft, topRight, bottomRight, bottomLeft }
+}
+
+function expandQuad(quad: Quad, width: number, height: number, amount: number) {
+  const center = {
+    x: (quad.topLeft.x + quad.topRight.x + quad.bottomRight.x + quad.bottomLeft.x) / 4,
+    y: (quad.topLeft.y + quad.topRight.y + quad.bottomRight.y + quad.bottomLeft.y) / 4,
+  }
+
+  return {
+    topLeft: expandPoint(quad.topLeft, center, width, height, amount),
+    topRight: expandPoint(quad.topRight, center, width, height, amount),
+    bottomRight: expandPoint(quad.bottomRight, center, width, height, amount),
+    bottomLeft: expandPoint(quad.bottomLeft, center, width, height, amount),
+  }
+}
+
+function expandPoint(point: Point, center: Point, width: number, height: number, amount: number) {
+  const vectorX = point.x - center.x
+  const vectorY = point.y - center.y
+  const length = Math.hypot(vectorX, vectorY) || 1
+
+  return {
+    x: clampNumber(point.x + (vectorX / length) * amount, 0, width - 1),
+    y: clampNumber(point.y + (vectorY / length) * amount, 0, height - 1),
+  }
+}
+
+function scalePoint(point: Point, scale: number) {
+  return {
+    x: point.x * scale,
+    y: point.y * scale,
+  }
+}
+
+function warpQuadToCanvas(canvas: HTMLCanvasElement, quad: Quad) {
+  const sourceContext = canvas.getContext('2d', { willReadFrequently: true })
+  if (!sourceContext) return null
+
+  const width = Math.max(distance(quad.topLeft, quad.topRight), distance(quad.bottomLeft, quad.bottomRight))
+  const height = Math.max(distance(quad.topLeft, quad.bottomLeft), distance(quad.topRight, quad.bottomRight))
+  const outputWidth = Math.max(1, Math.round(width))
+  const outputHeight = Math.max(1, Math.round(height))
+  const source = sourceContext.getImageData(0, 0, canvas.width, canvas.height)
+  const output = document.createElement('canvas')
+  const outputContext = output.getContext('2d')
+  if (!outputContext) return null
+
+  output.width = outputWidth
+  output.height = outputHeight
+
+  const outputData = outputContext.createImageData(outputWidth, outputHeight)
+  const sourcePixels = source.data
+  const outputPixels = outputData.data
+
+  for (let y = 0; y < outputHeight; y += 1) {
+    const v = outputHeight <= 1 ? 0 : y / (outputHeight - 1)
+    const left = interpolatePoint(quad.topLeft, quad.bottomLeft, v)
+    const right = interpolatePoint(quad.topRight, quad.bottomRight, v)
+
+    for (let x = 0; x < outputWidth; x += 1) {
+      const u = outputWidth <= 1 ? 0 : x / (outputWidth - 1)
+      const sourcePoint = interpolatePoint(left, right, u)
+      const sourceX = clampNumber(Math.round(sourcePoint.x), 0, canvas.width - 1)
+      const sourceY = clampNumber(Math.round(sourcePoint.y), 0, canvas.height - 1)
+      const sourceIndex = (sourceY * canvas.width + sourceX) * 4
+      const outputIndex = (y * outputWidth + x) * 4
+
+      outputPixels[outputIndex] = sourcePixels[sourceIndex]
+      outputPixels[outputIndex + 1] = sourcePixels[sourceIndex + 1]
+      outputPixels[outputIndex + 2] = sourcePixels[sourceIndex + 2]
+      outputPixels[outputIndex + 3] = 255
+    }
+  }
+
+  outputContext.putImageData(outputData, 0, 0)
+  return output
+}
+
+function interpolatePoint(from: Point, to: Point, amount: number) {
+  return {
+    x: from.x + (to.x - from.x) * amount,
+    y: from.y + (to.y - from.y) * amount,
+  }
+}
+
+function distance(from: Point, to: Point) {
+  return Math.hypot(to.x - from.x, to.y - from.y)
 }
 
 function cropDocument(canvas: HTMLCanvasElement) {
@@ -2345,6 +2638,10 @@ function smartChannel(value: number, brightness: number, shadowGain: number) {
 
 function clampColor(value: number) {
   return Math.max(0, Math.min(255, Math.round(value)))
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value))
 }
 
 function cloneCanvas(canvas: HTMLCanvasElement) {
