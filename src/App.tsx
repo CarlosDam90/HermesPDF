@@ -1427,7 +1427,6 @@ function ScannerControls({
               'Detects borders, crops, straightens and improves lighting automatically when creating the PDF.',
             )}
           </p>
-          <span>{languageText(text, 'Sin ajustes manuales', 'No manual settings')}</span>
         </div>
       </div>
 
