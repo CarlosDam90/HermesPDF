@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ChangeEvent, DragEvent, FormEvent, ReactNode, RefObject } from 'react'
+import type { CSSProperties, ChangeEvent, DragEvent, FormEvent, ReactNode, RefObject } from 'react'
 import {
   ArrowDown,
   ArrowUp,
@@ -45,30 +45,12 @@ type PdfFile = {
   size: number
 }
 
-type Adjustments = {
-  smartScan: boolean
-  brightness: number
-  contrast: number
-  grayscale: boolean
-  scanMode: boolean
-  autoCrop: boolean
-  margin: number
-}
-
 const A4 = {
   width: 595.28,
   height: 841.89,
 }
 
-const defaultAdjustments: Adjustments = {
-  smartScan: false,
-  brightness: 108,
-  contrast: 132,
-  grayscale: false,
-  scanMode: false,
-  autoCrop: true,
-  margin: 24,
-}
+const SCANNER_PDF_MARGIN = 24
 
 const toolOrder: Tool[] = ['scanner', 'merge', 'split', 'rotate', 'delete', 'watermark']
 
@@ -307,7 +289,6 @@ function App() {
   const [activeTool, setActiveTool] = useState<Tool>(() => getToolFromPath(window.location.pathname))
   const [images, setImages] = useState<PageImage[]>([])
   const [pdfFiles, setPdfFiles] = useState<PdfFile[]>([])
-  const [adjustments, setAdjustments] = useState(defaultAdjustments)
   const [pageSelection, setPageSelection] = useState('1')
   const [rotation, setRotation] = useState(90)
   const [watermark, setWatermark] = useState('SpartaPDF')
@@ -478,7 +459,6 @@ function App() {
     images.forEach((image) => URL.revokeObjectURL(image.previewUrl))
     setImages([])
     setPdfFiles([])
-    setAdjustments(defaultAdjustments)
     setPageSelection('1')
     setRotation(90)
     setWatermark('SpartaPDF')
@@ -491,11 +471,11 @@ function App() {
       const pdf = await PDFDocument.create()
 
       for (const image of images) {
-        const processed = await renderImageToJpeg(image, adjustments)
+        const processed = await renderImageToJpeg(image)
         const embeddedImage = await pdf.embedJpg(processed.bytes)
         const page = pdf.addPage([A4.width, A4.height])
-        const pageWidth = A4.width - adjustments.margin * 2
-        const pageHeight = A4.height - adjustments.margin * 2
+        const pageWidth = A4.width - SCANNER_PDF_MARGIN * 2
+        const pageHeight = A4.height - SCANNER_PDF_MARGIN * 2
         const scale = Math.min(pageWidth / processed.width, pageHeight / processed.height)
         const drawWidth = processed.width * scale
         const drawHeight = processed.height * scale
@@ -516,7 +496,7 @@ function App() {
       }
 
       await downloadPdf(pdf, `imagen-a-pdf-${today()}.pdf`)
-    })
+    }, 3200)
   }
 
   const mergePdfs = async () => {
@@ -621,7 +601,7 @@ function App() {
     })
   }
 
-  const runExport = async (message: string, action: () => Promise<void>) => {
+  const runExport = async (message: string, action: () => Promise<void>, minimumDuration = 1600) => {
     if (isExporting) return
     setIsExporting(true)
     setStatus(message)
@@ -629,10 +609,10 @@ function App() {
 
     try {
       await action()
-      await waitForMinimumDuration(startedAt, 1600)
+      await waitForMinimumDuration(startedAt, minimumDuration)
       setStatus(text.success)
     } catch (error) {
-      await waitForMinimumDuration(startedAt, 1600)
+      await waitForMinimumDuration(startedAt, minimumDuration)
       setStatus(error instanceof Error ? error.message : text.error)
     } finally {
       setIsExporting(false)
@@ -774,12 +754,10 @@ function App() {
           <aside className="controls-panel" aria-label="Ajustes">
             {activeTool === 'scanner' ? (
               <ScannerControls
-                adjustments={adjustments}
                 isDragging={isDragging}
                 inputRef={imageInputRef}
                 imageCount={images.length}
                 totalSize={totalImageSize}
-                onChange={setAdjustments}
                 onFileChange={handleImageChange}
                 onDragOver={() => setIsDragging(true)}
                 onDragLeave={() => setIsDragging(false)}
@@ -811,6 +789,7 @@ function App() {
           <section className="pages-area" aria-label="Area de trabajo">
             {isExporting && (
               <ScanOverlay
+                language={language}
                 message={status || text.processing}
                 preparingMessage={text.scanPreparing}
               />
@@ -818,7 +797,6 @@ function App() {
             {activeTool === 'scanner' ? (
               <ScannerWorkspace
                 images={images}
-                adjustments={adjustments}
                 inputRef={imageInputRef}
                 isDragging={isDragging}
                 onDragLeave={() => setIsDragging(false)}
@@ -1049,7 +1027,7 @@ function TrustAndHowItWorks({
     es: [
       {
         title: 'Convertir imagenes a PDF',
-        body: 'Crea un PDF a partir de imagenes JPG, PNG o WEBP con recorte automatico, ajuste de contraste y modo escaneado.',
+        body: 'Crea un PDF a partir de imagenes JPG, PNG o WEBP con deteccion de bordes, enderezado automatico y mejora de iluminacion.',
       },
       {
         title: 'Unir PDF gratis',
@@ -1075,7 +1053,7 @@ function TrustAndHowItWorks({
     en: [
       {
         title: 'Convert images to PDF',
-        body: 'Create a PDF from JPG, PNG or WEBP images with automatic cropping, contrast adjustment and scan mode.',
+        body: 'Create a PDF from JPG, PNG or WEBP images with border detection, automatic straightening and lighting enhancement.',
       },
       {
         title: 'Merge PDF for free',
@@ -1348,48 +1326,64 @@ function InfoModal({
 }
 
 function ScanOverlay({
+  language,
   message,
   preparingMessage,
 }: {
+  language: Language
   message: string
   preparingMessage: string
 }) {
+  const steps =
+    language === 'es'
+      ? ['Detectando bordes', 'Enderezando documento', 'Mejorando iluminacion', 'Generando PDF']
+      : ['Detecting borders', 'Straightening document', 'Improving lighting', 'Creating PDF']
+
   return (
     <div className="scan-overlay" role="status" aria-live="polite">
       <div className="scan-card">
         <div className="scan-paper">
+          <div className="scan-frame"></div>
+          <div className="scan-corner top-left"></div>
+          <div className="scan-corner top-right"></div>
+          <div className="scan-corner bottom-left"></div>
+          <div className="scan-corner bottom-right"></div>
           <div className="scan-line"></div>
+          <div className="scan-glow"></div>
           <div className="paper-row wide"></div>
           <div className="paper-row"></div>
           <div className="paper-row short"></div>
         </div>
         <strong>{message}</strong>
         <span>{preparingMessage}</span>
+        <ol className="scan-steps">
+          {steps.map((step, index) => (
+            <li key={step} style={{ '--step-index': index } as CSSProperties}>
+              {step}
+            </li>
+          ))}
+        </ol>
       </div>
     </div>
   )
 }
 
 function ScannerControls({
-  adjustments,
   isDragging,
   inputRef,
   imageCount,
   totalSize,
   text,
-  onChange,
   onFileChange,
   onDragOver,
   onDragLeave,
   onDrop,
 }: {
-  adjustments: Adjustments
   isDragging: boolean
   inputRef: RefObject<HTMLInputElement | null>
   imageCount: number
   totalSize: number
   text: UiText
-  onChange: (adjustments: Adjustments) => void
   onFileChange: (event: ChangeEvent<HTMLInputElement>) => void
   onDragOver: () => void
   onDragLeave: () => void
@@ -1421,74 +1415,20 @@ function ScannerControls({
       <div className="control-group">
         <div className="control-heading">
           <FileImage size={18} />
-          <span>{languageText(text, 'Ajustes de escaner', 'Scanner settings')}</span>
+          <span>{languageText(text, 'Escaneo automatico', 'Automatic scanning')}</span>
         </div>
 
-        <label className="smart-scan-card">
-          <input
-            type="checkbox"
-            checked={adjustments.smartScan}
-            onChange={(event) =>
-              onChange({
-                ...adjustments,
-                smartScan: event.target.checked,
-                autoCrop: event.target.checked ? true : adjustments.autoCrop,
-                brightness: event.target.checked ? 112 : adjustments.brightness,
-                contrast: event.target.checked ? 146 : adjustments.contrast,
-              })
-            }
-          />
-          <span>
-            <strong>{languageText(text, 'Escaneo inteligente', 'Smart scan')}</strong>
-            <small>
-              {languageText(
-                text,
-                'Recorta, endereza, ilumina y limpia la imagen como un escaner.',
-                'Crops, straightens, brightens and cleans the image like a scanner.',
-              )}
-            </small>
-          </span>
-        </label>
-
-        <Toggle
-          label={languageText(text, 'Recorte automatico', 'Automatic crop')}
-          checked={adjustments.autoCrop}
-          onChange={(autoCrop) => onChange({ ...adjustments, autoCrop })}
-        />
-        <Toggle
-          label={languageText(text, 'Modo documento', 'Document mode')}
-          checked={adjustments.scanMode}
-          onChange={(scanMode) => onChange({ ...adjustments, scanMode })}
-        />
-        <Toggle
-          label={languageText(text, 'Blanco y negro', 'Black and white')}
-          checked={adjustments.grayscale}
-          onChange={(grayscale) => onChange({ ...adjustments, grayscale })}
-        />
-        <Slider
-          label={languageText(text, 'Brillo', 'Brightness')}
-          value={adjustments.brightness}
-          min={70}
-          max={160}
-          suffix="%"
-          onChange={(brightness) => onChange({ ...adjustments, brightness })}
-        />
-        <Slider
-          label={languageText(text, 'Contraste', 'Contrast')}
-          value={adjustments.contrast}
-          min={80}
-          max={190}
-          suffix="%"
-          onChange={(contrast) => onChange({ ...adjustments, contrast })}
-        />
-        <Slider
-          label={languageText(text, 'Margen PDF', 'PDF margin')}
-          value={adjustments.margin}
-          min={0}
-          max={64}
-          suffix="pt"
-          onChange={(margin) => onChange({ ...adjustments, margin })}
-        />
+        <div className="auto-scan-card">
+          <strong>{languageText(text, 'Escaneo inteligente activo', 'Smart scan active')}</strong>
+          <p>
+            {languageText(
+              text,
+              'Detecta bordes, recorta, endereza y mejora la iluminacion automaticamente al generar el PDF.',
+              'Detects borders, crops, straightens and improves lighting automatically when creating the PDF.',
+            )}
+          </p>
+          <span>{languageText(text, 'Sin ajustes manuales', 'No manual settings')}</span>
+        </div>
       </div>
 
       <div className="stats-strip">
@@ -1641,7 +1581,6 @@ function PdfControls({
 
 function ScannerWorkspace({
   images,
-  adjustments,
   inputRef,
   isDragging,
   text,
@@ -1654,7 +1593,6 @@ function ScannerWorkspace({
   onRotate,
 }: {
   images: PageImage[]
-  adjustments: Adjustments
   inputRef: RefObject<HTMLInputElement | null>
   isDragging: boolean
   text: UiText
@@ -1724,7 +1662,6 @@ function ScannerWorkspace({
                 src={image.previewUrl}
                 alt={image.name}
                 style={{
-                  filter: buildCssFilter(adjustments),
                   transform: `rotate(${image.rotation}deg)`,
                 }}
               />
@@ -1950,62 +1887,6 @@ function UploadMedallion({
   )
 }
 
-function Toggle({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string
-  checked: boolean
-  onChange: (checked: boolean) => void
-}) {
-  return (
-    <label className="toggle-row">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-      />
-      <span>{label}</span>
-    </label>
-  )
-}
-
-function Slider({
-  label,
-  value,
-  min,
-  max,
-  suffix,
-  onChange,
-}: {
-  label: string
-  value: number
-  min: number
-  max: number
-  suffix: string
-  onChange: (value: number) => void
-}) {
-  return (
-    <label className="slider-row">
-      <span>
-        {label}
-        <strong>
-          {value}
-          {suffix}
-        </strong>
-      </span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
-    </label>
-  )
-}
-
 function IconAction({
   label,
   icon,
@@ -2033,33 +1914,13 @@ function IconAction({
   )
 }
 
-function buildCssFilter(adjustments: Adjustments) {
-  return [
-    `brightness(${adjustments.brightness}%)`,
-    `contrast(${adjustments.contrast}%)`,
-    adjustments.grayscale || adjustments.scanMode ? 'grayscale(100%)' : '',
-  ]
-    .filter(Boolean)
-    .join(' ')
-}
-
-async function renderImageToJpeg(image: PageImage, adjustments: Adjustments) {
+async function renderImageToJpeg(image: PageImage) {
   const bitmap = await createImageBitmap(image.file)
-  const rotatedCanvas = drawRotatedImage(bitmap, image.rotation, buildCssFilter(adjustments))
-  const croppedCanvas =
-    adjustments.autoCrop || adjustments.smartScan ? cropDocument(rotatedCanvas) : rotatedCanvas
-  const straightenedCanvas = adjustments.smartScan
-    ? straightenDocument(croppedCanvas)
-    : croppedCanvas
-  const refinedCanvas =
-    adjustments.smartScan && adjustments.autoCrop
-      ? cropDocument(straightenedCanvas)
-      : straightenedCanvas
-  const outputCanvas = adjustments.smartScan
-    ? applySmartScannerEffect(refinedCanvas)
-    : adjustments.scanMode
-      ? applyScannerEffect(refinedCanvas)
-      : cloneCanvas(refinedCanvas)
+  const rotatedCanvas = drawRotatedImage(bitmap, image.rotation)
+  const croppedCanvas = cropDocument(rotatedCanvas)
+  const straightenedCanvas = straightenDocument(croppedCanvas)
+  const refinedCanvas = cropDocument(straightenedCanvas)
+  const outputCanvas = applySmartScannerEffect(refinedCanvas)
   const bytes = await canvasToJpegBytes(outputCanvas)
   bitmap.close()
 
@@ -2084,7 +1945,7 @@ function straightenDocument(canvas: HTMLCanvasElement) {
   return rotateCanvasByAngle(canvas, -angle)
 }
 
-function drawRotatedImage(bitmap: ImageBitmap, rotation: number, filter: string) {
+function drawRotatedImage(bitmap: ImageBitmap, rotation: number) {
   const isQuarterTurn = rotation === 90 || rotation === 270
   const width = isQuarterTurn ? bitmap.height : bitmap.width
   const height = isQuarterTurn ? bitmap.width : bitmap.height
@@ -2099,7 +1960,6 @@ function drawRotatedImage(bitmap: ImageBitmap, rotation: number, filter: string)
   context.fillRect(0, 0, width, height)
   context.translate(width / 2, height / 2)
   context.rotate((rotation * Math.PI) / 180)
-  context.filter = filter
   context.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2)
 
   return canvas
@@ -2252,26 +2112,6 @@ function rotateCanvasByAngle(canvas: HTMLCanvasElement, angle: number) {
   context.rotate(radians)
   context.drawImage(canvas, -canvas.width / 2, -canvas.height / 2)
 
-  return output
-}
-
-function applyScannerEffect(canvas: HTMLCanvasElement) {
-  const output = cloneCanvas(canvas)
-  const context = output.getContext('2d', { willReadFrequently: true })
-  if (!context) return output
-
-  const imageData = context.getImageData(0, 0, output.width, output.height)
-  const pixels = imageData.data
-
-  for (let index = 0; index < pixels.length; index += 4) {
-    const average = (pixels[index] + pixels[index + 1] + pixels[index + 2]) / 3
-    const normalized = average > 188 ? 255 : Math.max(0, average - 38)
-    pixels[index] = normalized
-    pixels[index + 1] = normalized
-    pixels[index + 2] = normalized
-  }
-
-  context.putImageData(imageData, 0, 0)
   return output
 }
 
