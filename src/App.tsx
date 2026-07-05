@@ -2045,6 +2045,7 @@ type CvRuntime = {
 
 type CvFactory = (moduleArg?: Record<string, unknown>) => Promise<CvRuntime> | CvRuntime
 type CvGlobal = CvRuntime | CvFactory | undefined
+type CvModule = { default?: CvGlobal } & Record<string, unknown>
 
 type CvMat = {
   rows: number
@@ -2137,17 +2138,49 @@ async function resolveOpenCvRuntime() {
   const runtime = getWindowOpenCvRuntime()
   if (runtime) return runtime
 
-  const cvGlobal = getWindowOpenCvGlobal()
-  if (typeof cvGlobal === 'function') {
-    const initializedRuntime = await cvGlobal()
+  const cvGlobal = await waitForOpenCvGlobal()
+  const runtimeFromGlobal = await normalizeOpenCvValue(cvGlobal)
+  if (runtimeFromGlobal) return runtimeFromGlobal
+
+  const importedModule = (await import('@techstark/opencv-js')) as unknown as CvModule
+  const runtimeFromImport = await normalizeOpenCvValue(importedModule.default ?? importedModule)
+  if (runtimeFromImport) return runtimeFromImport
+
+  throw new Error('OpenCV no esta disponible en window.cv.')
+}
+
+async function normalizeOpenCvValue(value: unknown) {
+  if (isOpenCvRuntime(value)) return cacheOpenCvRuntime(value)
+
+  if (typeof value === 'function') {
+    const initializedRuntime = await (value as CvFactory)()
 
     if (isOpenCvRuntime(initializedRuntime)) {
-      ;(window as Window & { cv?: CvRuntime }).cv = initializedRuntime
-      return initializedRuntime
+      return cacheOpenCvRuntime(initializedRuntime)
     }
   }
 
-  throw new Error('OpenCV no esta disponible en window.cv.')
+  return null
+}
+
+function cacheOpenCvRuntime(runtime: CvRuntime) {
+  ;(globalThis as unknown as { cv?: CvRuntime }).cv = runtime
+  return runtime
+}
+
+async function waitForOpenCvGlobal() {
+  const startedAt = performance.now()
+
+  while (performance.now() - startedAt < 8000) {
+    const cvGlobal = getWindowOpenCvGlobal()
+    if (cvGlobal) return cvGlobal
+
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 80)
+    })
+  }
+
+  return getWindowOpenCvGlobal()
 }
 
 function getWindowOpenCvRuntime() {
@@ -2156,7 +2189,7 @@ function getWindowOpenCvRuntime() {
 }
 
 function getWindowOpenCvGlobal() {
-  return (window as Window & { cv?: CvGlobal }).cv
+  return (globalThis as unknown as { cv?: CvGlobal }).cv
 }
 
 function isOpenCvRuntime(value: unknown): value is CvRuntime {
