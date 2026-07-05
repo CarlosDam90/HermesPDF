@@ -3338,10 +3338,10 @@ function applySmartScannerEffect(canvas: HTMLCanvasElement) {
     const brightness = (red + green + blue) / 3
     const backgroundBrightness =
       (backgroundPixels[index] + backgroundPixels[index + 1] + backgroundPixels[index + 2]) / 3
-    const shadowGain = Math.min(1.48, Math.max(0.94, 232 / Math.max(92, backgroundBrightness)))
-    const cleanedRed = smartChannel(red, brightness, shadowGain)
-    const cleanedGreen = smartChannel(green, brightness, shadowGain)
-    const cleanedBlue = smartChannel(blue, brightness, shadowGain)
+    const shadowGain = Math.min(1.22, Math.max(0.96, 218 / Math.max(112, backgroundBrightness)))
+    const cleanedRed = smartChannel(red, green, blue, brightness, shadowGain)
+    const cleanedGreen = smartChannel(green, red, blue, brightness, shadowGain)
+    const cleanedBlue = smartChannel(blue, red, green, brightness, shadowGain)
 
     pixels[index] = cleanedRed
     pixels[index + 1] = cleanedGreen
@@ -3349,15 +3349,83 @@ function applySmartScannerEffect(canvas: HTMLCanvasElement) {
   }
 
   context.putImageData(imageData, 0, 0)
+  return removeBorderArtifacts(output)
+}
+
+function smartChannel(
+  value: number,
+  firstOtherValue: number,
+  secondOtherValue: number,
+  brightness: number,
+  shadowGain: number,
+) {
+  const colorSpread = Math.max(value, firstOtherValue, secondOtherValue) - Math.min(value, firstOtherValue, secondOtherValue)
+  const isInk = brightness < 158 || colorSpread > 70
+  const normalized = value * shadowGain + (isInk ? 1 : 4)
+  const contrasted = (normalized - 128) * (isInk ? 1.08 : 1.03) + 128
+  const cleaned = brightness > 226 && colorSpread < 42 ? Math.max(contrasted, 232) : contrasted
+
+  return clampColor(cleaned)
+}
+
+function removeBorderArtifacts(canvas: HTMLCanvasElement) {
+  const output = cloneCanvas(canvas)
+  const context = output.getContext('2d', { willReadFrequently: true })
+  if (!context) return output
+
+  const imageData = context.getImageData(0, 0, output.width, output.height)
+  const pixels = imageData.data
+  const width = output.width
+  const height = output.height
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      if (!isArtifactCleanupZone(x, y, width, height)) continue
+
+      const index = (y * width + x) * 4
+      const red = pixels[index]
+      const green = pixels[index + 1]
+      const blue = pixels[index + 2]
+      const brightness = (red + green + blue) / 3
+
+      if (!isLikelyFingerOrHandShadow(red, green, blue, brightness)) continue
+
+      const white = Math.max(246, Math.round((red + green + blue) / 3 + 28))
+      pixels[index] = white
+      pixels[index + 1] = white
+      pixels[index + 2] = white
+    }
+  }
+
+  context.putImageData(imageData, 0, 0)
   return output
 }
 
-function smartChannel(value: number, brightness: number, shadowGain: number) {
-  const normalized = value * shadowGain + 6
-  const contrasted = (normalized - 128) * 1.12 + 128
-  const cleaned = brightness > 214 ? Math.max(contrasted, 238) : contrasted
+function isArtifactCleanupZone(x: number, y: number, width: number, height: number) {
+  const lowerDocument = y > height * 0.68
+  const outerSides = x < width * 0.16 || x > width * 0.84
+  const bottomCorners = y > height * 0.56 && (x < width * 0.25 || x > width * 0.66)
 
-  return clampColor(cleaned)
+  return lowerDocument || outerSides || bottomCorners
+}
+
+function isLikelyFingerOrHandShadow(red: number, green: number, blue: number, brightness: number) {
+  const maxChannel = Math.max(red, green, blue)
+  const minChannel = Math.min(red, green, blue)
+  const spread = maxChannel - minChannel
+  const skinLike =
+    red > 118 &&
+    green > 72 &&
+    blue > 48 &&
+    red > green * 1.04 &&
+    green > blue * 1.04 &&
+    spread > 24 &&
+    spread < 118 &&
+    brightness > 92 &&
+    brightness < 238
+  const softShadowOnPaper = spread < 28 && brightness > 112 && brightness < 196
+
+  return skinLike || softShadowOnPaper
 }
 
 function clampColor(value: number) {
