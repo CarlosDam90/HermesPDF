@@ -792,6 +792,7 @@ function App() {
                 language={language}
                 message={status || text.processing}
                 preparingMessage={text.scanPreparing}
+                previewUrl={activeTool === 'scanner' ? images[0]?.previewUrl : undefined}
               />
             )}
             {activeTool === 'scanner' ? (
@@ -1329,10 +1330,12 @@ function ScanOverlay({
   language,
   message,
   preparingMessage,
+  previewUrl,
 }: {
   language: Language
   message: string
   preparingMessage: string
+  previewUrl?: string
 }) {
   const steps =
     language === 'es'
@@ -1342,7 +1345,10 @@ function ScanOverlay({
   return (
     <div className="scan-overlay" role="status" aria-live="polite">
       <div className="scan-card">
-        <div className="scan-paper">
+        <div className={`scan-paper ${previewUrl ? 'has-preview' : ''}`}>
+          {previewUrl && (
+            <img className="scan-preview-image" src={previewUrl} alt="" aria-hidden="true" />
+          )}
           <div className="scan-frame"></div>
           <div className="scan-corner top-left"></div>
           <div className="scan-corner top-right"></div>
@@ -1350,9 +1356,13 @@ function ScanOverlay({
           <div className="scan-corner bottom-right"></div>
           <div className="scan-line"></div>
           <div className="scan-glow"></div>
-          <div className="paper-row wide"></div>
-          <div className="paper-row"></div>
-          <div className="paper-row short"></div>
+          {!previewUrl && (
+            <>
+              <div className="paper-row wide"></div>
+              <div className="paper-row"></div>
+              <div className="paper-row short"></div>
+            </>
+          )}
         </div>
         <strong>{message}</strong>
         <span>{preparingMessage}</span>

@@ -927,8 +927,8 @@ button:disabled {
 .scan-paper {
   position: relative;
   display: grid;
-  width: 132px;
-  height: 172px;
+  width: min(320px, 72vw);
+  height: min(420px, 58svh);
   align-content: center;
   gap: 12px;
   overflow: hidden;
@@ -942,9 +942,41 @@ button:disabled {
   animation: paperShape 3.2s ease-in-out infinite;
 }
 
+.scan-paper.has-preview {
+  width: min(380px, 78vw);
+  height: min(500px, 56svh);
+  padding: 0;
+  background: #e5e7eb;
+}
+
+.scan-preview-image {
+  position: absolute;
+  inset: -12%;
+  width: 124%;
+  height: 124%;
+  object-fit: cover;
+  filter: brightness(0.82) contrast(0.92) saturate(0.9);
+  transform: rotate(-4deg) scale(1.06);
+  transform-origin: center;
+  animation: realDocumentScan 3.2s ease-in-out infinite;
+}
+
+.scan-paper.has-preview::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.46)),
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.18), transparent 56%);
+  opacity: 0;
+  content: '';
+  animation: scanLighten 3.2s ease-in-out infinite;
+}
+
 .scan-frame {
   position: absolute;
-  inset: 15px 13px;
+  inset: 6.5% 7%;
+  z-index: 3;
   border: 2px solid rgba(215, 163, 66, 0.78);
   border-radius: 6px;
   opacity: 0;
@@ -953,6 +985,7 @@ button:disabled {
 
 .scan-corner {
   position: absolute;
+  z-index: 4;
   width: 16px;
   height: 16px;
   border-color: #d7a342;
@@ -961,29 +994,29 @@ button:disabled {
 }
 
 .scan-corner.top-left {
-  top: 12px;
-  left: 10px;
+  top: 5%;
+  left: 5%;
   border-top: 3px solid;
   border-left: 3px solid;
 }
 
 .scan-corner.top-right {
-  top: 12px;
-  right: 10px;
+  top: 5%;
+  right: 5%;
   border-top: 3px solid;
   border-right: 3px solid;
 }
 
 .scan-corner.bottom-left {
-  bottom: 12px;
-  left: 10px;
+  bottom: 5%;
+  left: 5%;
   border-bottom: 3px solid;
   border-left: 3px solid;
 }
 
 .scan-corner.bottom-right {
-  right: 10px;
-  bottom: 12px;
+  right: 5%;
+  bottom: 5%;
   border-right: 3px solid;
   border-bottom: 3px solid;
 }
@@ -991,6 +1024,7 @@ button:disabled {
 .scan-glow {
   position: absolute;
   inset: 0;
+  z-index: 2;
   background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.78), transparent);
   opacity: 0;
   transform: translateY(-100%);
@@ -999,8 +1033,9 @@ button:disabled {
 
 .scan-line {
   position: absolute;
-  right: 10px;
-  left: 10px;
+  right: 6%;
+  left: 6%;
+  z-index: 4;
   height: 3px;
   border-radius: 999px;
   background: #f0c66b;
@@ -1027,7 +1062,7 @@ button:disabled {
 
 @keyframes scanSweep {
   0% {
-    top: 16px;
+    top: 7%;
     opacity: 0.35;
   }
 
@@ -1040,8 +1075,47 @@ button:disabled {
   }
 
   100% {
-    top: 153px;
+    top: 91%;
     opacity: 0.35;
+  }
+}
+
+@keyframes realDocumentScan {
+  0%,
+  16% {
+    clip-path: inset(0 0 0 0 round 2px);
+    filter: brightness(0.82) contrast(0.9) saturate(0.88);
+    transform: rotate(-4deg) scale(1.08);
+  }
+
+  34% {
+    clip-path: inset(6% 5% 8% 6% round 4px);
+    filter: brightness(0.9) contrast(1.02) saturate(0.94);
+    transform: rotate(-1.2deg) scale(1.03);
+  }
+
+  58% {
+    clip-path: inset(8% 8% 8% 8% round 4px);
+    filter: brightness(1.04) contrast(1.14) saturate(0.9);
+    transform: rotate(0deg) scale(1);
+  }
+
+  100% {
+    clip-path: inset(8% 8% 8% 8% round 4px);
+    filter: brightness(1.18) contrast(1.22) saturate(0.72);
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes scanLighten {
+  0%,
+  42% {
+    opacity: 0;
+  }
+
+  70%,
+  100% {
+    opacity: 1;
   }
 }
 
