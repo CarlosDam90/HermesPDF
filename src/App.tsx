@@ -1972,8 +1972,9 @@ async function renderImageToJpeg(image: PageImage) {
   const openCvCanvas = await cropDocumentWithOpenCv(rotatedCanvas)
   const scannedCanvas = openCvCanvas ?? cropDocumentPerspective(rotatedCanvas) ?? cropDocument(rotatedCanvas)
   const refinedCanvas = openCvCanvas ? scannedCanvas : cropDocument(straightenDocument(scannedCanvas))
-  const enhancedCanvas = applySmartScannerEffect(refinedCanvas)
-  const outputCanvas = openCvCanvas ? enhancedCanvas : cropDocument(enhancedCanvas)
+  const tightenedCanvas = cropDocument(refinedCanvas)
+  const enhancedCanvas = applySmartScannerEffect(tightenedCanvas)
+  const outputCanvas = cropDocument(enhancedCanvas)
   const bytes = await canvasToJpegBytes(outputCanvas)
   bitmap.close()
 
@@ -2059,6 +2060,7 @@ type CvModule = { default?: CvGlobal } & Record<string, unknown>
 type CvMat = {
   rows: number
   cols: number
+  data: Uint8Array
   data32S: Int32Array
   delete: () => void
 }
@@ -2268,7 +2270,7 @@ function detectDocumentQuadWithOpenCv(cv: CvRuntime, canvas: HTMLCanvasElement) 
     cv.morphologyEx(paperMask, paperMask, cv.MORPH_CLOSE, largeKernel)
 
     const candidates: Quad[] = []
-    const paperQuad = findBestOpenCvQuad(cv, paperMask, canvas.width, canvas.height)
+    const paperQuad = findBestOpenCvQuad(cv, paperMask, canvas.width, canvas.height, paperMask)
     if (paperQuad) candidates.push(paperQuad)
 
     cv.Canny(blurred, edges, 35, 110)
@@ -2277,10 +2279,10 @@ function detectDocumentQuadWithOpenCv(cv: CvRuntime, canvas: HTMLCanvasElement) 
     const lineQuad = findOpenCvQuadByLines(cv, edges, canvas.width, canvas.height)
     if (lineQuad) candidates.push(lineQuad)
 
-    const edgeQuad = findBestOpenCvQuad(cv, edges, canvas.width, canvas.height)
+    const edgeQuad = findBestOpenCvQuad(cv, edges, canvas.width, canvas.height, paperMask)
     if (edgeQuad) candidates.push(edgeQuad)
 
-    return chooseBestOpenCvQuad(candidates, canvas.width, canvas.height)
+    return chooseBestOpenCvQuad(candidates, canvas.width, canvas.height, paperMask)
   } finally {
     source.delete()
     gray.delete()
@@ -2387,6 +2389,14 @@ function chooseBoundaryLine(
   let bestScore = -Infinity
 
   for (const line of filtered) {
+    const normalizedPosition =
+      side === 'top' || side === 'bottom' ? line.midpointY / height : line.midpointX / width
+    const boundaryPosition =
+      side === 'top' || side === 'left' ? 1 - normalizedPosition : normalizedPosition
+    const slopePenalty =
+      side === 'top' || side === 'bottom'
+        ? Math.abs(line.y2 - line.y1) / Math.max(1, Math.abs(line.x2 - line.x1))
+        : Math.abs(line.x2 - line.x1) / Math.max(1, Math.abs(line.y2 - line.y1))
     const edgeScore =
       side === 'top'
         ? height - line.midpointY
@@ -2395,7 +2405,7 @@ function chooseBoundaryLine(
           : side === 'left'
             ? width - line.midpointX
             : line.midpointX
-    const score = line.length * 0.72 + edgeScore * 0.28
+    const score = line.length * 0.64 + edgeScore * 0.26 + boundaryPosition * 120 - slopePenalty * 85
 
     if (score > bestScore) {
       bestScore = score
@@ -2430,14 +2440,14 @@ function intersectLines(first: OpenCvLine, second: OpenCvLine) {
   }
 }
 
-function chooseBestOpenCvQuad(candidates: Quad[], width: number, height: number) {
+function chooseBestOpenCvQuad(candidates: Quad[], width: number, height: number, paperMask?: CvMat) {
   let bestQuad: Quad | null = null
   let bestScore = -Infinity
 
   for (const candidate of candidates) {
     if (!isValidOpenCvQuad(candidate, width, height)) continue
 
-    const score = scoreOpenCvQuad(candidate, width, height, quadArea(candidate))
+    const score = scoreOpenCvQuad(candidate, width, height, quadArea(candidate), paperMask)
     if (score > bestScore) {
       bestQuad = candidate
       bestScore = score
@@ -2469,7 +2479,7 @@ function isValidOpenCvQuad(quad: Quad, width: number, height: number) {
   )
 }
 
-function findBestOpenCvQuad(cv: CvRuntime, mask: CvMat, width: number, height: number) {
+function findBestOpenCvQuad(cv: CvRuntime, mask: CvMat, width: number, height: number, paperMask?: CvMat) {
   const contours = new cv.MatVector()
   const hierarchy = new cv.Mat()
   cv.findContours(mask, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
@@ -2501,7 +2511,7 @@ function findBestOpenCvQuad(cv: CvRuntime, mask: CvMat, width: number, height: n
 
       if (quadWidth < width * 0.22 || quadHeight < height * 0.22) continue
 
-      const score = scoreOpenCvQuad(ordered, width, height, area)
+      const score = scoreOpenCvQuad(ordered, width, height, area, paperMask)
       if (score > bestScore) {
         bestQuad = ordered
         bestScore = score
@@ -2515,7 +2525,7 @@ function findBestOpenCvQuad(cv: CvRuntime, mask: CvMat, width: number, height: n
   }
 }
 
-function scoreOpenCvQuad(quad: Quad, width: number, height: number, contourArea: number) {
+function scoreOpenCvQuad(quad: Quad, width: number, height: number, contourArea: number, paperMask?: CvMat) {
   const imageArea = width * height
   const area = quadArea(quad)
   const areaRatio = Math.min(area, contourArea) / imageArea
@@ -2541,9 +2551,71 @@ function scoreOpenCvQuad(quad: Quad, width: number, height: number, contourArea:
   const centerDistance = Math.hypot(center.x - width / 2, center.y - height / 2)
   const centerScore = 1 - Math.min(1, centerDistance / Math.hypot(width / 2, height / 2))
   const aspectScore = aspect > 2.35 ? 0.45 : 1
-  const overfillPenalty = areaRatio > 0.9 ? (areaRatio - 0.9) * 7 : 0
+  const overfillPenalty = areaRatio > 0.9 ? (areaRatio - 0.9) * 10 : 0
+  const paperFillScore = paperMask ? estimatePaperFillInsideQuad(paperMask, quad, width, height) : 0.75
+  const edgeDistanceScore = scoreQuadEdgeDistance(quad, width, height)
 
-  return areaRatio * 4 + parallelBalance * 2 + centerScore * 1.4 + aspectScore - overfillPenalty
+  return (
+    areaRatio * 3.1 +
+    parallelBalance * 2 +
+    centerScore * 1.2 +
+    aspectScore +
+    paperFillScore * 2.3 +
+    edgeDistanceScore * 0.8 -
+    overfillPenalty
+  )
+}
+
+function estimatePaperFillInsideQuad(mask: CvMat, quad: Quad, width: number, height: number) {
+  if (!mask.data) return 0.75
+
+  const minX = Math.max(0, Math.floor(Math.min(quad.topLeft.x, quad.topRight.x, quad.bottomRight.x, quad.bottomLeft.x)))
+  const maxX = Math.min(width - 1, Math.ceil(Math.max(quad.topLeft.x, quad.topRight.x, quad.bottomRight.x, quad.bottomLeft.x)))
+  const minY = Math.max(0, Math.floor(Math.min(quad.topLeft.y, quad.topRight.y, quad.bottomRight.y, quad.bottomLeft.y)))
+  const maxY = Math.min(height - 1, Math.ceil(Math.max(quad.topLeft.y, quad.topRight.y, quad.bottomRight.y, quad.bottomLeft.y)))
+  const step = Math.max(2, Math.floor(Math.min(width, height) / 90))
+  let paperHits = 0
+  let samples = 0
+
+  for (let y = minY; y <= maxY; y += step) {
+    for (let x = minX; x <= maxX; x += step) {
+      if (!isPointInsideQuad({ x, y }, quad)) continue
+      samples += 1
+      if (mask.data[y * width + x] > 0) paperHits += 1
+    }
+  }
+
+  if (samples === 0) return 0
+  return paperHits / samples
+}
+
+function scoreQuadEdgeDistance(quad: Quad, width: number, height: number) {
+  const points = [quad.topLeft, quad.topRight, quad.bottomRight, quad.bottomLeft]
+  const minDistance = Math.min(
+    ...points.map((point) => Math.min(point.x, width - point.x, point.y, height - point.y)),
+  )
+
+  return Math.min(1, Math.max(0, minDistance / Math.max(1, Math.min(width, height) * 0.08)))
+}
+
+function isPointInsideQuad(point: Point, quad: Quad) {
+  const polygon = [quad.topLeft, quad.topRight, quad.bottomRight, quad.bottomLeft]
+  let inside = false
+
+  for (let current = 0, previous = polygon.length - 1; current < polygon.length; previous = current, current += 1) {
+    const currentPoint = polygon[current]
+    const previousPoint = polygon[previous]
+    const intersects =
+      currentPoint.y > point.y !== previousPoint.y > point.y &&
+      point.x <
+        ((previousPoint.x - currentPoint.x) * (point.y - currentPoint.y)) /
+          Math.max(0.001, previousPoint.y - currentPoint.y) +
+          currentPoint.x
+
+    if (intersects) inside = !inside
+  }
+
+  return inside
 }
 
 function quadArea(quad: Quad) {
