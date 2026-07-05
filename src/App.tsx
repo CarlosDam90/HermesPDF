@@ -3349,7 +3349,7 @@ function applySmartScannerEffect(canvas: HTMLCanvasElement) {
   }
 
   context.putImageData(imageData, 0, 0)
-  return removeBorderArtifacts(output)
+  return output
 }
 
 function smartChannel(
@@ -3366,66 +3366,6 @@ function smartChannel(
   const cleaned = brightness > 226 && colorSpread < 42 ? Math.max(contrasted, 232) : contrasted
 
   return clampColor(cleaned)
-}
-
-function removeBorderArtifacts(canvas: HTMLCanvasElement) {
-  const output = cloneCanvas(canvas)
-  const context = output.getContext('2d', { willReadFrequently: true })
-  if (!context) return output
-
-  const imageData = context.getImageData(0, 0, output.width, output.height)
-  const pixels = imageData.data
-  const width = output.width
-  const height = output.height
-
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      if (!isArtifactCleanupZone(x, y, width, height)) continue
-
-      const index = (y * width + x) * 4
-      const red = pixels[index]
-      const green = pixels[index + 1]
-      const blue = pixels[index + 2]
-      const brightness = (red + green + blue) / 3
-
-      if (!isLikelyFingerOrHandShadow(red, green, blue, brightness)) continue
-
-      const white = Math.max(246, Math.round((red + green + blue) / 3 + 28))
-      pixels[index] = white
-      pixels[index + 1] = white
-      pixels[index + 2] = white
-    }
-  }
-
-  context.putImageData(imageData, 0, 0)
-  return output
-}
-
-function isArtifactCleanupZone(x: number, y: number, width: number, height: number) {
-  const lowerDocument = y > height * 0.68
-  const outerSides = x < width * 0.16 || x > width * 0.84
-  const bottomCorners = y > height * 0.56 && (x < width * 0.25 || x > width * 0.66)
-
-  return lowerDocument || outerSides || bottomCorners
-}
-
-function isLikelyFingerOrHandShadow(red: number, green: number, blue: number, brightness: number) {
-  const maxChannel = Math.max(red, green, blue)
-  const minChannel = Math.min(red, green, blue)
-  const spread = maxChannel - minChannel
-  const skinLike =
-    red > 118 &&
-    green > 72 &&
-    blue > 48 &&
-    red > green * 1.04 &&
-    green > blue * 1.04 &&
-    spread > 24 &&
-    spread < 118 &&
-    brightness > 92 &&
-    brightness < 238
-  const softShadowOnPaper = spread < 28 && brightness > 112 && brightness < 196
-
-  return skinLike || softShadowOnPaper
 }
 
 function clampColor(value: number) {
