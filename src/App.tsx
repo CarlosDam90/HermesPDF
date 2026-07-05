@@ -2043,6 +2043,9 @@ type CvRuntime = {
   ) => void
 }
 
+type CvFactory = (moduleArg?: Record<string, unknown>) => Promise<CvRuntime> | CvRuntime
+type CvGlobal = CvRuntime | CvFactory | undefined
+
 type CvMat = {
   rows: number
   cols: number
@@ -2071,8 +2074,8 @@ async function loadOpenCv() {
 
 function loadOpenCvScript() {
   return new Promise<CvRuntime>((resolve, reject) => {
-    const existingRuntime = getWindowOpenCv()
-    if (existingRuntime?.Mat) {
+    const existingRuntime = getWindowOpenCvRuntime()
+    if (existingRuntime) {
       resolve(existingRuntime)
       return
     }
@@ -2088,47 +2091,81 @@ function loadOpenCvScript() {
 
     const timeout = window.setTimeout(() => {
       reject(new Error('OpenCV no termino de cargar a tiempo.'))
-    }, 15000)
+    }, 45000)
 
     const finish = () => {
-      const runtime = getWindowOpenCv()
-
-      if (!runtime) {
-        window.clearTimeout(timeout)
-        reject(new Error('OpenCV no esta disponible en window.cv.'))
-        return
-      }
-
-      if (runtime.Mat) {
-        window.clearTimeout(timeout)
-        resolve(runtime)
-        return
-      }
-
-      runtime.onRuntimeInitialized = () => {
-        window.clearTimeout(timeout)
-        resolve(runtime)
-      }
+      void resolveOpenCvRuntime()
+        .then((runtime) => {
+          window.clearTimeout(timeout)
+          resolve(runtime)
+        })
+        .catch((error: unknown) => {
+          window.clearTimeout(timeout)
+          reject(error instanceof Error ? error : new Error('OpenCV no esta disponible.'))
+        })
     }
 
-    script.addEventListener('load', finish, { once: true })
-    script.addEventListener(
-      'error',
-      () => {
-        window.clearTimeout(timeout)
-        reject(new Error('No se pudo cargar opencv.js.'))
-      },
-      { once: true },
-    )
-
-    if (!existingScript) {
+    if (existingScript) {
+      if (existingScript.dataset.spartaLoaded === 'true') {
+        finish()
+      } else {
+        existingScript.addEventListener('load', finish, { once: true })
+      }
+    } else {
+      script.addEventListener('load', finish, { once: true })
+      script.addEventListener(
+        'error',
+        () => {
+          window.clearTimeout(timeout)
+          reject(new Error('No se pudo cargar opencv.js.'))
+        },
+        { once: true },
+      )
+      script.addEventListener(
+        'load',
+        () => {
+          script.dataset.spartaLoaded = 'true'
+        },
+        { once: true },
+      )
       document.head.append(script)
     }
   })
 }
 
-function getWindowOpenCv() {
-  return (window as Window & { cv?: CvRuntime & { onRuntimeInitialized?: () => void } }).cv
+async function resolveOpenCvRuntime() {
+  const runtime = getWindowOpenCvRuntime()
+  if (runtime) return runtime
+
+  const cvGlobal = getWindowOpenCvGlobal()
+  if (typeof cvGlobal === 'function') {
+    const initializedRuntime = await cvGlobal()
+
+    if (isOpenCvRuntime(initializedRuntime)) {
+      ;(window as Window & { cv?: CvRuntime }).cv = initializedRuntime
+      return initializedRuntime
+    }
+  }
+
+  throw new Error('OpenCV no esta disponible en window.cv.')
+}
+
+function getWindowOpenCvRuntime() {
+  const cvGlobal = getWindowOpenCvGlobal()
+  return isOpenCvRuntime(cvGlobal) ? cvGlobal : null
+}
+
+function getWindowOpenCvGlobal() {
+  return (window as Window & { cv?: CvGlobal }).cv
+}
+
+function isOpenCvRuntime(value: unknown): value is CvRuntime {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'Mat' in value &&
+    typeof (value as CvRuntime).Mat === 'function'
+  )
 }
 
 async function cropDocumentWithOpenCv(canvas: HTMLCanvasElement) {
