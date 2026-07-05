@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ChangeEvent, DragEvent, ReactNode, RefObject } from 'react'
+import type { ChangeEvent, DragEvent, FormEvent, ReactNode, RefObject } from 'react'
 import {
   ArrowDown,
   ArrowUp,
@@ -26,7 +26,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import './App.css'
 
 type Tool = 'scanner' | 'merge' | 'split' | 'rotate' | 'delete' | 'watermark'
-type InfoPanel = 'about' | 'contact' | 'privacy' | 'help'
+type InfoPanel = 'about' | 'contact' | 'privacy' | 'terms' | 'help'
 type Language = 'es' | 'en'
 
 type PageImage = {
@@ -996,7 +996,7 @@ function SiteFooter({
           <button type="button" onClick={() => onOpenInfo('privacy')}>
             {content.privacy}
           </button>
-          <button type="button" onClick={() => onOpenInfo('help')}>
+          <button type="button" onClick={() => onOpenInfo('terms')}>
             {content.terms}
           </button>
         </FooterColumn>
@@ -1193,16 +1193,28 @@ function InfoModal({
         icon: <Mail size={22} />,
         title: 'Contacto',
         body: [
-          'Este bloque quedara preparado para anadir un correo de soporte o un formulario cuando publiques la web.',
-          'De momento puedes usarlo como seccion informativa y cambiar el texto final antes del despliegue.',
+          'Si tienes una duda, una sugerencia o detectas un problema, puedes enviar un mensaje desde este formulario.',
+          'El formulario no guarda tus datos en SpartaPDF: prepara un correo en tu aplicacion de email para que puedas revisarlo antes de enviarlo.',
         ],
       },
       privacy: {
         icon: <Lock size={22} />,
         title: 'Privacidad',
         body: [
-          'Los archivos se procesan en el navegador. SpartaPDF no sube tus imagenes ni PDFs a un servidor para generar los documentos.',
+          'SpartaPDF esta disenado para trabajar con tus documentos directamente en el navegador siempre que la herramienta lo permita.',
+          'Los archivos que seleccionas se procesan en tu dispositivo y no se suben a un servidor de SpartaPDF para crear, unir, dividir, rotar o modificar PDFs.',
           'Al cerrar o recargar la pagina, los archivos cargados dejan de estar disponibles en la sesion actual.',
+          'Actualmente no usamos cookies de analitica, publicidad ni seguimiento. Si en el futuro se anaden servicios que requieran consentimiento, se mostrara un aviso claro antes de activarlos.',
+        ],
+      },
+      terms: {
+        icon: <Stamp size={22} />,
+        title: 'Condiciones de uso',
+        body: [
+          'SpartaPDF ofrece herramientas gratuitas para trabajar con archivos PDF e imagenes desde el navegador.',
+          'Debes usar la web solo con archivos sobre los que tengas derecho de uso y evitando contenido ilegal, danino o que vulnere derechos de terceros.',
+          'Aunque trabajamos para que las herramientas funcionen correctamente, no podemos garantizar que el resultado sea adecuado para todos los usos profesionales, legales o administrativos. Revisa siempre el documento final antes de compartirlo.',
+          'SpartaPDF puede cambiar, mejorar o retirar funciones para mantener la seguridad, estabilidad y calidad del servicio.',
         ],
       },
       help: {
@@ -1227,16 +1239,28 @@ function InfoModal({
         icon: <Mail size={22} />,
         title: 'Contact',
         body: [
-          'This section is ready for a support email or contact form when the site grows.',
-          'For now it works as an information panel that can be adjusted before a more formal launch.',
+          'If you have a question, suggestion or found an issue, you can send a message from this form.',
+          'The form does not store your data in SpartaPDF: it prepares an email in your mail app so you can review it before sending.',
         ],
       },
       privacy: {
         icon: <Lock size={22} />,
         title: 'Privacy',
         body: [
-          'Files are processed in the browser. SpartaPDF does not upload your images or PDFs to a server to create documents.',
+          'SpartaPDF is designed to work with your documents directly in the browser whenever the tool allows it.',
+          'The files you select are processed on your device and are not uploaded to a SpartaPDF server to create, merge, split, rotate or edit PDFs.',
           'When you close or reload the page, loaded files are no longer available in the current session.',
+          'We currently do not use analytics, advertising or tracking cookies. If services requiring consent are added in the future, a clear notice will be shown before enabling them.',
+        ],
+      },
+      terms: {
+        icon: <Stamp size={22} />,
+        title: 'Terms of use',
+        body: [
+          'SpartaPDF provides free tools for working with PDF files and images from the browser.',
+          'You should only use the website with files you have the right to use, avoiding illegal, harmful content or content that infringes third-party rights.',
+          'Although we work to keep the tools reliable, we cannot guarantee that the result is suitable for every professional, legal or administrative use. Always review the final document before sharing it.',
+          'SpartaPDF may change, improve or remove features to maintain the security, stability and quality of the service.',
         ],
       },
       help: {
@@ -1250,6 +1274,25 @@ function InfoModal({
     },
   } satisfies Record<Language, Record<InfoPanel, { icon: ReactNode; title: string; body: string[] }>>
   const item = content[language][panel]
+
+  function handleContactSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const formData = new FormData(event.currentTarget)
+    const name = String(formData.get('name') ?? '').trim()
+    const email = String(formData.get('email') ?? '').trim()
+    const subject = String(formData.get('subject') ?? '').trim()
+    const message = String(formData.get('message') ?? '').trim()
+    const body = [
+      `Nombre: ${name}`,
+      `Email: ${email}`,
+      '',
+      message,
+    ].join('\n')
+    const mailto = new URL('mailto:contacto@spartapdf.com')
+    mailto.searchParams.set('subject', subject || 'Contacto desde SpartaPDF')
+    mailto.searchParams.set('body', body)
+    window.location.href = mailto.toString()
+  }
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="info-title">
@@ -1272,6 +1315,30 @@ function InfoModal({
           {item.body.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
+          {panel === 'contact' && (
+            <form className="contact-form" onSubmit={handleContactSubmit}>
+              <label>
+                <span>{language === 'es' ? 'Nombre' : 'Name'}</span>
+                <input name="name" type="text" autoComplete="name" required />
+              </label>
+              <label>
+                <span>Email</span>
+                <input name="email" type="email" autoComplete="email" required />
+              </label>
+              <label>
+                <span>{language === 'es' ? 'Asunto' : 'Subject'}</span>
+                <input name="subject" type="text" required />
+              </label>
+              <label>
+                <span>{language === 'es' ? 'Mensaje' : 'Message'}</span>
+                <textarea name="message" rows={5} required />
+              </label>
+              <button className="primary-button" type="submit">
+                <Mail size={18} />
+                {language === 'es' ? 'Preparar email' : 'Prepare email'}
+              </button>
+            </form>
+          )}
         </div>
       </article>
     </div>

@@ -637,6 +637,8 @@ button:disabled {
 
 .info-modal {
   width: min(560px, 100%);
+  max-height: min(760px, calc(100svh - 40px));
+  overflow: auto;
   border: 1px solid rgba(240, 198, 107, 0.3);
   border-radius: 8px;
   background: #ffffff;
@@ -682,6 +684,49 @@ button:disabled {
 .modal-body p {
   color: #475569;
   line-height: 1.55;
+}
+
+.contact-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 6px;
+  border-top: 1px solid rgba(226, 232, 240, 0.95);
+  padding-top: 16px;
+}
+
+.contact-form label {
+  display: grid;
+  gap: 7px;
+  color: #334155;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  border-radius: 8px;
+  padding: 11px 12px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+}
+
+.contact-form textarea {
+  resize: vertical;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  border-color: rgba(215, 163, 66, 0.82);
+  box-shadow: 0 0 0 3px rgba(215, 163, 66, 0.14);
+  outline: 0;
+}
+
+.contact-form .primary-button {
+  justify-self: start;
+  margin-top: 4px;
 }
 
 .tool-grid.is-empty-start {
