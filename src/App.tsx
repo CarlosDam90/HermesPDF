@@ -46,6 +46,7 @@ type PdfFile = {
 }
 
 type Adjustments = {
+  smartScan: boolean
   brightness: number
   contrast: number
   grayscale: boolean
@@ -60,6 +61,7 @@ const A4 = {
 }
 
 const defaultAdjustments: Adjustments = {
+  smartScan: false,
   brightness: 108,
   contrast: 132,
   grayscale: false,
@@ -1422,6 +1424,32 @@ function ScannerControls({
           <span>{languageText(text, 'Ajustes de escaner', 'Scanner settings')}</span>
         </div>
 
+        <label className="smart-scan-card">
+          <input
+            type="checkbox"
+            checked={adjustments.smartScan}
+            onChange={(event) =>
+              onChange({
+                ...adjustments,
+                smartScan: event.target.checked,
+                autoCrop: event.target.checked ? true : adjustments.autoCrop,
+                brightness: event.target.checked ? 112 : adjustments.brightness,
+                contrast: event.target.checked ? 146 : adjustments.contrast,
+              })
+            }
+          />
+          <span>
+            <strong>{languageText(text, 'Escaneo inteligente', 'Smart scan')}</strong>
+            <small>
+              {languageText(
+                text,
+                'Recorta, endereza, ilumina y limpia la imagen como un escaner.',
+                'Crops, straightens, brightens and cleans the image like a scanner.',
+              )}
+            </small>
+          </span>
+        </label>
+
         <Toggle
           label={languageText(text, 'Recorte automatico', 'Automatic crop')}
           checked={adjustments.autoCrop}
@@ -2018,10 +2046,20 @@ function buildCssFilter(adjustments: Adjustments) {
 async function renderImageToJpeg(image: PageImage, adjustments: Adjustments) {
   const bitmap = await createImageBitmap(image.file)
   const rotatedCanvas = drawRotatedImage(bitmap, image.rotation, buildCssFilter(adjustments))
-  const croppedCanvas = adjustments.autoCrop ? cropDocument(rotatedCanvas) : rotatedCanvas
-  const outputCanvas = adjustments.scanMode
-    ? applyScannerEffect(croppedCanvas)
-    : cloneCanvas(croppedCanvas)
+  const croppedCanvas =
+    adjustments.autoCrop || adjustments.smartScan ? cropDocument(rotatedCanvas) : rotatedCanvas
+  const straightenedCanvas = adjustments.smartScan
+    ? straightenDocument(croppedCanvas)
+    : croppedCanvas
+  const refinedCanvas =
+    adjustments.smartScan && adjustments.autoCrop
+      ? cropDocument(straightenedCanvas)
+      : straightenedCanvas
+  const outputCanvas = adjustments.smartScan
+    ? applySmartScannerEffect(refinedCanvas)
+    : adjustments.scanMode
+      ? applyScannerEffect(refinedCanvas)
+      : cloneCanvas(refinedCanvas)
   const bytes = await canvasToJpegBytes(outputCanvas)
   bitmap.close()
 
@@ -2030,6 +2068,20 @@ async function renderImageToJpeg(image: PageImage, adjustments: Adjustments) {
     width: outputCanvas.width,
     height: outputCanvas.height,
   }
+}
+
+function straightenDocument(canvas: HTMLCanvasElement) {
+  const context = canvas.getContext('2d', { willReadFrequently: true })
+  if (!context) return canvas
+
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+  const angle = estimateDocumentSkew(imageData, canvas.width, canvas.height)
+
+  if (Math.abs(angle) < 0.35 || Math.abs(angle) > 7) {
+    return canvas
+  }
+
+  return rotateCanvasByAngle(canvas, -angle)
 }
 
 function drawRotatedImage(bitmap: ImageBitmap, rotation: number, filter: string) {
@@ -2121,6 +2173,88 @@ function findDocumentBounds(imageData: ImageData, width: number, height: number)
   }
 }
 
+function estimateDocumentSkew(imageData: ImageData, width: number, height: number) {
+  const pixels = imageData.data
+  const stepX = Math.max(2, Math.floor(width / 220))
+  const stepY = Math.max(2, Math.floor(height / 220))
+  const topPoints: Array<{ x: number; y: number }> = []
+  const bottomPoints: Array<{ x: number; y: number }> = []
+
+  for (let x = 0; x < width; x += stepX) {
+    for (let y = 0; y < height; y += stepY) {
+      if (isDocumentPixel(pixels, width, x, y)) {
+        topPoints.push({ x, y })
+        break
+      }
+    }
+
+    for (let y = height - 1; y >= 0; y -= stepY) {
+      if (isDocumentPixel(pixels, width, x, y)) {
+        bottomPoints.push({ x, y })
+        break
+      }
+    }
+  }
+
+  const topAngle = lineAngle(topPoints)
+  const bottomAngle = lineAngle(bottomPoints)
+  const angles = [topAngle, bottomAngle].filter((angle): angle is number => angle !== null)
+
+  if (angles.length === 0) return 0
+
+  return angles.reduce((sum, angle) => sum + angle, 0) / angles.length
+}
+
+function isDocumentPixel(pixels: Uint8ClampedArray, width: number, x: number, y: number) {
+  const index = (y * width + x) * 4
+  const red = pixels[index]
+  const green = pixels[index + 1]
+  const blue = pixels[index + 2]
+  const brightness = (red + green + blue) / 3
+  const colorSpread = Math.max(red, green, blue) - Math.min(red, green, blue)
+
+  return brightness < 232 || colorSpread > 22
+}
+
+function lineAngle(points: Array<{ x: number; y: number }>) {
+  if (points.length < 16) return null
+
+  const meanX = points.reduce((sum, point) => sum + point.x, 0) / points.length
+  const meanY = points.reduce((sum, point) => sum + point.y, 0) / points.length
+  let numerator = 0
+  let denominator = 0
+
+  for (const point of points) {
+    numerator += (point.x - meanX) * (point.y - meanY)
+    denominator += (point.x - meanX) ** 2
+  }
+
+  if (denominator === 0) return null
+
+  return Math.atan(numerator / denominator) * (180 / Math.PI)
+}
+
+function rotateCanvasByAngle(canvas: HTMLCanvasElement, angle: number) {
+  const radians = (angle * Math.PI) / 180
+  const sin = Math.abs(Math.sin(radians))
+  const cos = Math.abs(Math.cos(radians))
+  const width = Math.ceil(canvas.width * cos + canvas.height * sin)
+  const height = Math.ceil(canvas.width * sin + canvas.height * cos)
+  const output = document.createElement('canvas')
+  const context = output.getContext('2d')
+  if (!context) return canvas
+
+  output.width = width
+  output.height = height
+  context.fillStyle = '#ffffff'
+  context.fillRect(0, 0, width, height)
+  context.translate(width / 2, height / 2)
+  context.rotate(radians)
+  context.drawImage(canvas, -canvas.width / 2, -canvas.height / 2)
+
+  return output
+}
+
 function applyScannerEffect(canvas: HTMLCanvasElement) {
   const output = cloneCanvas(canvas)
   const context = output.getContext('2d', { willReadFrequently: true })
@@ -2139,6 +2273,45 @@ function applyScannerEffect(canvas: HTMLCanvasElement) {
 
   context.putImageData(imageData, 0, 0)
   return output
+}
+
+function applySmartScannerEffect(canvas: HTMLCanvasElement) {
+  const output = cloneCanvas(canvas)
+  const context = output.getContext('2d', { willReadFrequently: true })
+  if (!context) return output
+
+  const imageData = context.getImageData(0, 0, output.width, output.height)
+  const pixels = imageData.data
+
+  for (let index = 0; index < pixels.length; index += 4) {
+    const red = pixels[index]
+    const green = pixels[index + 1]
+    const blue = pixels[index + 2]
+    const brightness = (red + green + blue) / 3
+    const backgroundLift = Math.max(0, 238 - brightness) * 0.18
+    const cleanedRed = smartChannel(red, brightness, backgroundLift)
+    const cleanedGreen = smartChannel(green, brightness, backgroundLift)
+    const cleanedBlue = smartChannel(blue, brightness, backgroundLift)
+
+    pixels[index] = cleanedRed
+    pixels[index + 1] = cleanedGreen
+    pixels[index + 2] = cleanedBlue
+  }
+
+  context.putImageData(imageData, 0, 0)
+  return output
+}
+
+function smartChannel(value: number, brightness: number, backgroundLift: number) {
+  const brightened = value + backgroundLift + 10
+  const contrasted = (brightened - 128) * 1.18 + 128
+  const cleaned = brightness > 205 ? Math.max(contrasted, 246) : contrasted
+
+  return clampColor(cleaned)
+}
+
+function clampColor(value: number) {
+  return Math.max(0, Math.min(255, Math.round(value)))
 }
 
 function cloneCanvas(canvas: HTMLCanvasElement) {

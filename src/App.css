@@ -817,6 +817,44 @@ button:disabled {
   font-weight: 700;
 }
 
+.smart-scan-card {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  border: 1px solid rgba(215, 163, 66, 0.38);
+  border-radius: 8px;
+  padding: 13px;
+  background: linear-gradient(180deg, #fffdf6, #ffffff);
+  color: #334155;
+  cursor: pointer;
+}
+
+.smart-scan-card input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: #d7a342;
+}
+
+.smart-scan-card span {
+  display: grid;
+  gap: 4px;
+}
+
+.smart-scan-card strong {
+  color: #111827;
+  font-size: 0.94rem;
+  font-weight: 900;
+}
+
+.smart-scan-card small {
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
 .toggle-row {
   grid-template-columns: 18px 1fr;
   align-items: center;
