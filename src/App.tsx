@@ -2025,6 +2025,8 @@ type CvRuntime = {
   contourArea: (contour: CvMat) => number
   arcLength: (curve: CvMat, closed: boolean) => number
   approxPolyDP: (curve: CvMat, approxCurve: CvMat, epsilon: number, closed: boolean) => void
+  minAreaRect: (points: CvMat) => CvRotatedRect
+  boxPoints: (box: CvRotatedRect) => Point[]
   matFromArray: (rows: number, cols: number, type: number, array: number[]) => CvMat
   getPerspectiveTransform: (source: CvMat, target: CvMat) => CvMat
   warpPerspective: (
@@ -2050,6 +2052,8 @@ type CvMatVector = {
   get: (index: number) => CvMat
   delete: () => void
 }
+
+type CvRotatedRect = unknown
 
 async function loadOpenCv() {
   if (!openCvPromise) {
@@ -2085,7 +2089,10 @@ async function cropDocumentWithOpenCv(canvas: HTMLCanvasElement) {
     sampleContext.drawImage(canvas, 0, 0, sample.width, sample.height)
 
     const quad = detectDocumentQuadWithOpenCv(cv, sample)
-    if (!quad) return null
+    if (!quad) {
+      console.info('[SpartaPDF] OpenCV cargado, pero no encontro un documento claro. Usando fallback.')
+      return null
+    }
 
     const unscale = 1 / scale
     const sourceQuad = {
@@ -2095,8 +2102,11 @@ async function cropDocumentWithOpenCv(canvas: HTMLCanvasElement) {
       bottomLeft: scalePoint(quad.bottomLeft, unscale),
     }
 
-    return warpQuadWithOpenCv(cv, canvas, sourceQuad)
-  } catch {
+    const output = warpQuadWithOpenCv(cv, canvas, sourceQuad)
+    if (output) console.info('[SpartaPDF] Documento recortado con OpenCV.')
+    return output
+  } catch (error) {
+    console.warn('[SpartaPDF] OpenCV fallo y se usara el recorte anterior.', error)
     return null
   }
 }
@@ -2174,7 +2184,7 @@ function approximateContourToQuad(cv: CvRuntime, contour: CvMat, perimeter: numb
     approx.delete()
   }
 
-  return null
+  return cv.boxPoints(cv.minAreaRect(contour))
 }
 
 function matToPoints(mat: CvMat) {
