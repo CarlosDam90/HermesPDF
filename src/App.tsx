@@ -2024,7 +2024,7 @@ function detectDocumentQuad(canvas: HTMLCanvasElement) {
     },
     canvas.width,
     canvas.height,
-    Math.round(Math.min(canvas.width, canvas.height) * 0.012),
+    Math.round(Math.min(canvas.width, canvas.height) * 0.004),
   )
 }
 
@@ -2041,10 +2041,11 @@ function buildPaperMask(imageData: ImageData, width: number, height: number) {
       const blue = pixels[index + 2]
       const brightness = (red + green + blue) / 3
       const saturation = Math.max(red, green, blue) - Math.min(red, green, blue)
+      const redBias = red - (green + blue) / 2
       const likelyPaper =
-        (brightness > Math.max(122, edgeBrightness + 14) && saturation < 86) ||
-        (brightness > 172 && saturation < 118) ||
-        brightness > 208
+        (brightness > Math.max(138, edgeBrightness + 22) && saturation < 54 && redBias < 28) ||
+        (brightness > 184 && saturation < 72 && redBias < 36) ||
+        (brightness > 220 && saturation < 96)
 
       if (likelyPaper) {
         mask[y * width + x] = 1
@@ -2078,7 +2079,8 @@ function sampleEdgeBrightness(pixels: Uint8ClampedArray, width: number, height: 
 }
 
 function closeMask(mask: Uint8Array, width: number, height: number) {
-  return erodeMask(dilateMask(mask, width, height), width, height)
+  const opened = dilateMask(erodeMask(mask, width, height), width, height)
+  return erodeMask(dilateMask(opened, width, height), width, height)
 }
 
 function dilateMask(mask: Uint8Array, width: number, height: number) {
@@ -2161,17 +2163,10 @@ function findLargestMaskComponent(mask: Uint8Array, width: number, height: numbe
 function componentToQuad(points: Point[]) {
   if (points.length === 0) return null
 
-  let topLeft = points[0]
-  let topRight = points[0]
-  let bottomRight = points[0]
-  let bottomLeft = points[0]
-
-  for (const point of points) {
-    if (point.x + point.y < topLeft.x + topLeft.y) topLeft = point
-    if (point.x - point.y > topRight.x - topRight.y) topRight = point
-    if (point.x + point.y > bottomRight.x + bottomRight.y) bottomRight = point
-    if (point.y - point.x > bottomLeft.y - bottomLeft.x) bottomLeft = point
-  }
+  const topLeft = pickCornerPoint(points, (point) => point.x + point.y, 0.006)
+  const topRight = pickCornerPoint(points, (point) => point.x - point.y, 0.994)
+  const bottomRight = pickCornerPoint(points, (point) => point.x + point.y, 0.994)
+  const bottomLeft = pickCornerPoint(points, (point) => point.y - point.x, 0.994)
 
   const width = Math.max(distance(topLeft, topRight), distance(bottomLeft, bottomRight))
   const height = Math.max(distance(topLeft, bottomLeft), distance(topRight, bottomRight))
@@ -2179,6 +2174,14 @@ function componentToQuad(points: Point[]) {
   if (width < 40 || height < 40) return null
 
   return { topLeft, topRight, bottomRight, bottomLeft }
+}
+
+function pickCornerPoint(points: Point[], scorePoint: (point: Point) => number, quantile: number) {
+  const ranked = points
+    .map((point) => ({ point, score: scorePoint(point) }))
+    .sort((left, right) => left.score - right.score)
+  const index = clampNumber(Math.round((ranked.length - 1) * quantile), 0, ranked.length - 1)
+  return ranked[index].point
 }
 
 function expandQuad(quad: Quad, width: number, height: number, amount: number) {
@@ -2614,7 +2617,7 @@ function applySmartScannerEffect(canvas: HTMLCanvasElement) {
     const brightness = (red + green + blue) / 3
     const backgroundBrightness =
       (backgroundPixels[index] + backgroundPixels[index + 1] + backgroundPixels[index + 2]) / 3
-    const shadowGain = Math.min(1.95, Math.max(0.92, 245 / Math.max(70, backgroundBrightness)))
+    const shadowGain = Math.min(1.48, Math.max(0.94, 232 / Math.max(92, backgroundBrightness)))
     const cleanedRed = smartChannel(red, brightness, shadowGain)
     const cleanedGreen = smartChannel(green, brightness, shadowGain)
     const cleanedBlue = smartChannel(blue, brightness, shadowGain)
@@ -2629,9 +2632,9 @@ function applySmartScannerEffect(canvas: HTMLCanvasElement) {
 }
 
 function smartChannel(value: number, brightness: number, shadowGain: number) {
-  const normalized = value * shadowGain + 12
-  const contrasted = (normalized - 128) * 1.28 + 128
-  const cleaned = brightness > 188 ? Math.max(contrasted, 248) : contrasted
+  const normalized = value * shadowGain + 6
+  const contrasted = (normalized - 128) * 1.12 + 128
+  const cleaned = brightness > 214 ? Math.max(contrasted, 238) : contrasted
 
   return clampColor(cleaned)
 }
