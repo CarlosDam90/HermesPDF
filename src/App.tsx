@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { degrees, PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import { useLocation, useNavigate } from 'react-router-dom'
+import openCvScriptUrl from '@techstark/opencv-js/dist/opencv.js?url'
 import './App.css'
 
 type Tool = 'scanner' | 'merge' | 'split' | 'rotate' | 'delete' | 'watermark'
@@ -2059,22 +2060,75 @@ type CvRotatedRect = unknown
 
 async function loadOpenCv() {
   if (!openCvPromise) {
-    openCvPromise = import('@techstark/opencv-js').then(async (module) => {
-      const candidate = (module as unknown as { default?: unknown }).default ?? module
-      const cv = candidate instanceof Promise ? await candidate : candidate
-      const runtime = cv as CvRuntime & { onRuntimeInitialized?: () => void }
-
-      if (runtime.Mat) return runtime
-
-      await new Promise<void>((resolve) => {
-        runtime.onRuntimeInitialized = resolve
-      })
-
-      return runtime
+    openCvPromise = loadOpenCvScript().catch((error) => {
+      openCvPromise = null
+      throw error
     })
   }
 
   return openCvPromise
+}
+
+function loadOpenCvScript() {
+  return new Promise<CvRuntime>((resolve, reject) => {
+    const existingRuntime = getWindowOpenCv()
+    if (existingRuntime?.Mat) {
+      resolve(existingRuntime)
+      return
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>('script[data-sparta-opencv="true"]')
+    const script = existingScript ?? document.createElement('script')
+
+    if (!existingScript) {
+      script.async = true
+      script.dataset.spartaOpencv = 'true'
+      script.src = openCvScriptUrl
+    }
+
+    const timeout = window.setTimeout(() => {
+      reject(new Error('OpenCV no termino de cargar a tiempo.'))
+    }, 15000)
+
+    const finish = () => {
+      const runtime = getWindowOpenCv()
+
+      if (!runtime) {
+        window.clearTimeout(timeout)
+        reject(new Error('OpenCV no esta disponible en window.cv.'))
+        return
+      }
+
+      if (runtime.Mat) {
+        window.clearTimeout(timeout)
+        resolve(runtime)
+        return
+      }
+
+      runtime.onRuntimeInitialized = () => {
+        window.clearTimeout(timeout)
+        resolve(runtime)
+      }
+    }
+
+    script.addEventListener('load', finish, { once: true })
+    script.addEventListener(
+      'error',
+      () => {
+        window.clearTimeout(timeout)
+        reject(new Error('No se pudo cargar opencv.js.'))
+      },
+      { once: true },
+    )
+
+    if (!existingScript) {
+      document.head.append(script)
+    }
+  })
+}
+
+function getWindowOpenCv() {
+  return (window as Window & { cv?: CvRuntime & { onRuntimeInitialized?: () => void } }).cv
 }
 
 async function cropDocumentWithOpenCv(canvas: HTMLCanvasElement) {
