@@ -1345,6 +1345,9 @@ function ScanOverlay({
   return (
     <div className="scan-overlay" role="status" aria-live="polite">
       <div className="scan-card">
+        <SpartaScanAnimation
+          label={language === 'es' ? 'Escaneando y creando PDF...' : 'Scanning and creating PDF...'}
+        />
         <div className={`scan-paper ${previewUrl ? 'has-preview' : ''}`}>
           {previewUrl && (
             <img className="scan-preview-image" src={previewUrl} alt="" aria-hidden="true" />
@@ -1374,6 +1377,45 @@ function ScanOverlay({
           ))}
         </ol>
       </div>
+    </div>
+  )
+}
+
+function SpartaScanAnimation({ label }: { label: string }) {
+  return (
+    <div className="sparta-scan-loader" aria-label={label}>
+      <div className="scan-track">
+        <svg className="photo-card" viewBox="0 0 120 86" aria-hidden="true">
+          <rect x="4" y="4" width="112" height="78" rx="10" />
+          <circle cx="31" cy="28" r="9" />
+          <path d="M17 67 L48 42 L69 60 L83 48 L105 67 Z" />
+        </svg>
+
+        <svg className="scan-machine" viewBox="0 0 160 112" aria-hidden="true">
+          <rect className="machine-body" x="18" y="28" width="124" height="58" rx="16" />
+          <rect className="machine-slot" x="33" y="43" width="94" height="12" rx="6" />
+          <rect className="machine-exit" x="38" y="72" width="84" height="9" rx="4.5" />
+          <circle className="machine-dot" cx="130" cy="37" r="5" />
+          <line className="scan-light" x1="42" y1="50" x2="118" y2="50" />
+        </svg>
+
+        <svg className="pdf-card" viewBox="0 0 100 124" aria-hidden="true">
+          <path
+            className="pdf-paper"
+            d="M12 4 H66 L88 26 V112 C88 117 84 121 79 121 H12 C7 121 3 117 3 112 V13 C3 8 7 4 12 4 Z"
+          />
+          <path className="pdf-fold" d="M66 4 V27 H88 Z" />
+          <rect className="pdf-badge" x="20" y="76" width="60" height="26" rx="8" />
+          <text x="50" y="94" textAnchor="middle">
+            PDF
+          </text>
+          <line className="pdf-line" x1="21" y1="42" x2="70" y2="42" />
+          <line className="pdf-line" x1="21" y1="55" x2="77" y2="55" />
+          <line className="pdf-line" x1="21" y1="68" x2="58" y2="68" />
+        </svg>
+      </div>
+
+      <div className="loader-text">{label}</div>
     </div>
   )
 }
