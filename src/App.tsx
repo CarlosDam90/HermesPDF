@@ -2015,6 +2015,15 @@ type CvRuntime = {
     borderType?: number,
   ) => void
   Canny: (source: CvMat, target: CvMat, threshold1: number, threshold2: number) => void
+  HoughLinesP?: (
+    source: CvMat,
+    lines: CvMat,
+    rho: number,
+    theta: number,
+    threshold: number,
+    minLineLength: number,
+    maxLineGap: number,
+  ) => void
   threshold: (source: CvMat, target: CvMat, threshold: number, maxValue: number, type: number) => void
   getStructuringElement: (shape: number, size: unknown) => CvMat
   morphologyEx: (source: CvMat, target: CvMat, operation: number, kernel: CvMat) => void
@@ -2258,12 +2267,20 @@ function detectDocumentQuadWithOpenCv(cv: CvRuntime, canvas: HTMLCanvasElement) 
     cv.morphologyEx(paperMask, paperMask, cv.MORPH_OPEN, smallKernel)
     cv.morphologyEx(paperMask, paperMask, cv.MORPH_CLOSE, largeKernel)
 
+    const candidates: Quad[] = []
     const paperQuad = findBestOpenCvQuad(cv, paperMask, canvas.width, canvas.height)
-    if (paperQuad) return paperQuad
+    if (paperQuad) candidates.push(paperQuad)
 
     cv.Canny(blurred, edges, 35, 110)
     cv.morphologyEx(edges, edges, cv.MORPH_CLOSE, largeKernel)
-    return findBestOpenCvQuad(cv, edges, canvas.width, canvas.height)
+
+    const lineQuad = findOpenCvQuadByLines(cv, edges, canvas.width, canvas.height)
+    if (lineQuad) candidates.push(lineQuad)
+
+    const edgeQuad = findBestOpenCvQuad(cv, edges, canvas.width, canvas.height)
+    if (edgeQuad) candidates.push(edgeQuad)
+
+    return chooseBestOpenCvQuad(candidates, canvas.width, canvas.height)
   } finally {
     source.delete()
     gray.delete()
@@ -2273,6 +2290,183 @@ function detectDocumentQuadWithOpenCv(cv: CvRuntime, canvas: HTMLCanvasElement) 
     smallKernel.delete()
     largeKernel.delete()
   }
+}
+
+type OpenCvLine = {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+  midpointX: number
+  midpointY: number
+  length: number
+}
+
+function findOpenCvQuadByLines(cv: CvRuntime, edges: CvMat, width: number, height: number) {
+  if (!cv.HoughLinesP) return null
+
+  const lines = new cv.Mat()
+
+  try {
+    cv.HoughLinesP(
+      edges,
+      lines,
+      1,
+      Math.PI / 180,
+      Math.max(60, Math.round(Math.min(width, height) * 0.055)),
+      Math.max(80, Math.round(Math.min(width, height) * 0.22)),
+      Math.max(14, Math.round(Math.min(width, height) * 0.025)),
+    )
+
+    const horizontal: OpenCvLine[] = []
+    const vertical: OpenCvLine[] = []
+
+    for (let index = 0; index < lines.rows; index += 1) {
+      const offset = index * 4
+      const x1 = lines.data32S[offset]
+      const y1 = lines.data32S[offset + 1]
+      const x2 = lines.data32S[offset + 2]
+      const y2 = lines.data32S[offset + 3]
+      const dx = x2 - x1
+      const dy = y2 - y1
+      const length = Math.hypot(dx, dy)
+
+      if (length < Math.min(width, height) * 0.2) continue
+
+      const line = {
+        x1,
+        y1,
+        x2,
+        y2,
+        midpointX: (x1 + x2) / 2,
+        midpointY: (y1 + y2) / 2,
+        length,
+      }
+
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        horizontal.push(line)
+      } else {
+        vertical.push(line)
+      }
+    }
+
+    const top = chooseBoundaryLine(horizontal, 'top', width, height)
+    const bottom = chooseBoundaryLine(horizontal, 'bottom', width, height)
+    const left = chooseBoundaryLine(vertical, 'left', width, height)
+    const right = chooseBoundaryLine(vertical, 'right', width, height)
+
+    if (!top || !bottom || !left || !right) return null
+
+    const quad = orderQuadPoints([
+      intersectLines(top, left),
+      intersectLines(top, right),
+      intersectLines(bottom, right),
+      intersectLines(bottom, left),
+    ])
+
+    return isValidOpenCvQuad(quad, width, height) ? quad : null
+  } finally {
+    lines.delete()
+  }
+}
+
+function chooseBoundaryLine(
+  lines: OpenCvLine[],
+  side: 'top' | 'bottom' | 'left' | 'right',
+  width: number,
+  height: number,
+) {
+  const filtered = lines.filter((line) => {
+    if (side === 'top') return line.midpointY < height * 0.58
+    if (side === 'bottom') return line.midpointY > height * 0.42
+    if (side === 'left') return line.midpointX < width * 0.58
+    return line.midpointX > width * 0.42
+  })
+
+  let bestLine: OpenCvLine | null = null
+  let bestScore = -Infinity
+
+  for (const line of filtered) {
+    const edgeScore =
+      side === 'top'
+        ? height - line.midpointY
+        : side === 'bottom'
+          ? line.midpointY
+          : side === 'left'
+            ? width - line.midpointX
+            : line.midpointX
+    const score = line.length * 0.72 + edgeScore * 0.28
+
+    if (score > bestScore) {
+      bestScore = score
+      bestLine = line
+    }
+  }
+
+  return bestLine
+}
+
+function intersectLines(first: OpenCvLine, second: OpenCvLine) {
+  const firstA = first.x1 * first.y2 - first.y1 * first.x2
+  const secondA = second.x1 * second.y2 - second.y1 * second.x2
+  const denominator =
+    (first.x1 - first.x2) * (second.y1 - second.y2) -
+    (first.y1 - first.y2) * (second.x1 - second.x2)
+
+  if (Math.abs(denominator) < 0.001) {
+    return {
+      x: (first.midpointX + second.midpointX) / 2,
+      y: (first.midpointY + second.midpointY) / 2,
+    }
+  }
+
+  return {
+    x:
+      (firstA * (second.x1 - second.x2) - (first.x1 - first.x2) * secondA) /
+      denominator,
+    y:
+      (firstA * (second.y1 - second.y2) - (first.y1 - first.y2) * secondA) /
+      denominator,
+  }
+}
+
+function chooseBestOpenCvQuad(candidates: Quad[], width: number, height: number) {
+  let bestQuad: Quad | null = null
+  let bestScore = -Infinity
+
+  for (const candidate of candidates) {
+    if (!isValidOpenCvQuad(candidate, width, height)) continue
+
+    const score = scoreOpenCvQuad(candidate, width, height, quadArea(candidate))
+    if (score > bestScore) {
+      bestQuad = candidate
+      bestScore = score
+    }
+  }
+
+  return bestQuad
+}
+
+function isValidOpenCvQuad(quad: Quad, width: number, height: number) {
+  const areaRatio = quadArea(quad) / (width * height)
+  const quadWidth = Math.max(distance(quad.topLeft, quad.topRight), distance(quad.bottomLeft, quad.bottomRight))
+  const quadHeight = Math.max(distance(quad.topLeft, quad.bottomLeft), distance(quad.topRight, quad.bottomRight))
+  const points = [quad.topLeft, quad.topRight, quad.bottomRight, quad.bottomLeft]
+  const maxOutside = Math.min(width, height) * 0.18
+
+  return (
+    areaRatio >= 0.08 &&
+    areaRatio <= 0.97 &&
+    quadWidth >= width * 0.22 &&
+    quadHeight >= height * 0.22 &&
+    points.every(
+      (point) =>
+        point.x >= -maxOutside &&
+        point.x <= width + maxOutside &&
+        point.y >= -maxOutside &&
+        point.y <= height + maxOutside,
+    )
+  )
 }
 
 function findBestOpenCvQuad(cv: CvRuntime, mask: CvMat, width: number, height: number) {
