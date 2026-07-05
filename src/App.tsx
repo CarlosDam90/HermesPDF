@@ -2204,7 +2204,7 @@ function isOpenCvRuntime(value: unknown): value is CvRuntime {
 async function cropDocumentWithOpenCv(canvas: HTMLCanvasElement) {
   try {
     const cv = await loadOpenCv()
-    const maxSide = 1400
+    const maxSide = 1700
     const scale = Math.min(1, maxSide / Math.max(canvas.width, canvas.height))
     const sample = document.createElement('canvas')
     const sampleContext = sample.getContext('2d')
@@ -2221,12 +2221,17 @@ async function cropDocumentWithOpenCv(canvas: HTMLCanvasElement) {
     }
 
     const unscale = 1 / scale
-    const sourceQuad = {
-      topLeft: scalePoint(quad.topLeft, unscale),
-      topRight: scalePoint(quad.topRight, unscale),
-      bottomRight: scalePoint(quad.bottomRight, unscale),
-      bottomLeft: scalePoint(quad.bottomLeft, unscale),
-    }
+    const sourceQuad = expandQuad(
+      {
+        topLeft: scalePoint(quad.topLeft, unscale),
+        topRight: scalePoint(quad.topRight, unscale),
+        bottomRight: scalePoint(quad.bottomRight, unscale),
+        bottomLeft: scalePoint(quad.bottomLeft, unscale),
+      },
+      canvas.width,
+      canvas.height,
+      Math.round(Math.min(canvas.width, canvas.height) * 0.006),
+    )
 
     const output = warpQuadWithOpenCv(cv, canvas, sourceQuad)
     if (output) console.info('[SpartaPDF] Documento recortado con OpenCV.')
@@ -2278,13 +2283,14 @@ function findBestOpenCvQuad(cv: CvRuntime, mask: CvMat, width: number, height: n
   try {
     const imageArea = width * height
     let bestQuad: Quad | null = null
-    let bestArea = 0
+    let bestScore = -Infinity
 
     for (let index = 0; index < contours.size(); index += 1) {
       const contour = contours.get(index)
       const area = cv.contourArea(contour)
+      const areaRatio = area / imageArea
 
-      if (area < imageArea * 0.1 || area < bestArea || area > imageArea * 0.985) {
+      if (areaRatio < 0.08 || areaRatio > 0.965) {
         contour.delete()
         continue
       }
@@ -2301,8 +2307,11 @@ function findBestOpenCvQuad(cv: CvRuntime, mask: CvMat, width: number, height: n
 
       if (quadWidth < width * 0.22 || quadHeight < height * 0.22) continue
 
-      bestQuad = ordered
-      bestArea = area
+      const score = scoreOpenCvQuad(ordered, width, height, area)
+      if (score > bestScore) {
+        bestQuad = ordered
+        bestScore = score
+      }
     }
 
     return bestQuad
@@ -2310,6 +2319,50 @@ function findBestOpenCvQuad(cv: CvRuntime, mask: CvMat, width: number, height: n
     contours.delete()
     hierarchy.delete()
   }
+}
+
+function scoreOpenCvQuad(quad: Quad, width: number, height: number, contourArea: number) {
+  const imageArea = width * height
+  const area = quadArea(quad)
+  const areaRatio = Math.min(area, contourArea) / imageArea
+  const topWidth = distance(quad.topLeft, quad.topRight)
+  const bottomWidth = distance(quad.bottomLeft, quad.bottomRight)
+  const leftHeight = distance(quad.topLeft, quad.bottomLeft)
+  const rightHeight = distance(quad.topRight, quad.bottomRight)
+  const averageWidth = (topWidth + bottomWidth) / 2
+  const averageHeight = (leftHeight + rightHeight) / 2
+  const aspect = averageWidth > averageHeight ? averageWidth / averageHeight : averageHeight / averageWidth
+  const parallelBalance =
+    1 -
+    Math.min(
+      1,
+      (Math.abs(topWidth - bottomWidth) / Math.max(topWidth, bottomWidth, 1) +
+        Math.abs(leftHeight - rightHeight) / Math.max(leftHeight, rightHeight, 1)) /
+        2,
+    )
+  const center = {
+    x: (quad.topLeft.x + quad.topRight.x + quad.bottomRight.x + quad.bottomLeft.x) / 4,
+    y: (quad.topLeft.y + quad.topRight.y + quad.bottomRight.y + quad.bottomLeft.y) / 4,
+  }
+  const centerDistance = Math.hypot(center.x - width / 2, center.y - height / 2)
+  const centerScore = 1 - Math.min(1, centerDistance / Math.hypot(width / 2, height / 2))
+  const aspectScore = aspect > 2.35 ? 0.45 : 1
+  const overfillPenalty = areaRatio > 0.9 ? (areaRatio - 0.9) * 7 : 0
+
+  return areaRatio * 4 + parallelBalance * 2 + centerScore * 1.4 + aspectScore - overfillPenalty
+}
+
+function quadArea(quad: Quad) {
+  const points = [quad.topLeft, quad.topRight, quad.bottomRight, quad.bottomLeft]
+  let area = 0
+
+  for (let index = 0; index < points.length; index += 1) {
+    const current = points[index]
+    const next = points[(index + 1) % points.length]
+    area += current.x * next.y - next.x * current.y
+  }
+
+  return Math.abs(area) / 2
 }
 
 function approximateContourToQuad(cv: CvRuntime, contour: CvMat, perimeter: number) {
