@@ -1929,7 +1929,8 @@ async function renderImageToJpeg(image: PageImage) {
   const croppedCanvas = cropDocument(rotatedCanvas)
   const straightenedCanvas = straightenDocument(croppedCanvas)
   const refinedCanvas = cropDocument(straightenedCanvas)
-  const outputCanvas = applySmartScannerEffect(refinedCanvas)
+  const enhancedCanvas = applySmartScannerEffect(refinedCanvas)
+  const outputCanvas = cropDocument(enhancedCanvas)
   const bytes = await canvasToJpegBytes(outputCanvas)
   bitmap.close()
 
@@ -2005,6 +2006,9 @@ function cropDocument(canvas: HTMLCanvasElement) {
 }
 
 function findDocumentBounds(imageData: ImageData, width: number, height: number) {
+  const edgeBounds = findDocumentBoundsByEdges(imageData, width, height)
+  if (edgeBounds) return edgeBounds
+
   const pixels = imageData.data
   const step = Math.max(2, Math.floor(Math.min(width, height) / 700))
   const borderColor = sampleBorderColor(pixels, width, height, step)
@@ -2038,6 +2042,71 @@ function findDocumentBounds(imageData: ImageData, width: number, height: number)
     width: maxX - minX + 1,
     height: maxY - minY + 1,
   }
+}
+
+function findDocumentBoundsByEdges(imageData: ImageData, width: number, height: number) {
+  const pixels = imageData.data
+  const step = Math.max(2, Math.floor(Math.min(width, height) / 850))
+  const verticalScores = new Array<number>(width).fill(0)
+  const horizontalScores = new Array<number>(height).fill(0)
+
+  for (let y = step; y < height - step; y += step) {
+    for (let x = step; x < width - step; x += step) {
+      const horizontalGradient = Math.abs(
+        pixelBrightness(pixels, width, x + step, y) -
+          pixelBrightness(pixels, width, x - step, y),
+      )
+      const verticalGradient = Math.abs(
+        pixelBrightness(pixels, width, x, y + step) -
+          pixelBrightness(pixels, width, x, y - step),
+      )
+
+      if (horizontalGradient > 18) verticalScores[x] += horizontalGradient
+      if (verticalGradient > 18) horizontalScores[y] += verticalGradient
+    }
+  }
+
+  const left = findBoundaryPeak(verticalScores, 0.02, 0.42)
+  const right = findBoundaryPeak(verticalScores, 0.58, 0.98)
+  const top = findBoundaryPeak(horizontalScores, 0.02, 0.42)
+  const bottom = findBoundaryPeak(horizontalScores, 0.58, 0.98)
+
+  if (left === null || right === null || top === null || bottom === null) return null
+  if (right - left < width * 0.26 || bottom - top < height * 0.26) return null
+  if (right - left > width * 0.98 && bottom - top > height * 0.98) return null
+
+  return {
+    x: left,
+    y: top,
+    width: right - left + 1,
+    height: bottom - top + 1,
+  }
+}
+
+function findBoundaryPeak(scores: number[], fromRatio: number, toRatio: number) {
+  const from = Math.max(0, Math.floor(scores.length * fromRatio))
+  const to = Math.min(scores.length - 1, Math.ceil(scores.length * toRatio))
+  const windowSize = Math.max(8, Math.floor(scores.length * 0.009))
+  let bestIndex = -1
+  let bestScore = 0
+  let total = 0
+  let samples = 0
+
+  for (let index = from; index <= to; index += 1) {
+    const score = sumWindow(scores, index - Math.floor(windowSize / 2), windowSize)
+    total += score
+    samples += 1
+
+    if (score > bestScore) {
+      bestScore = score
+      bestIndex = index
+    }
+  }
+
+  const average = samples > 0 ? total / samples : 0
+  if (bestIndex < 0 || bestScore < Math.max(average * 2.2, 900)) return null
+
+  return bestIndex
 }
 
 function sampleBorderColor(
