@@ -1987,13 +1987,11 @@ async function renderImageToJpeg(image: PageImage) {
 let openCvPromise: Promise<CvRuntime> | null = null
 
 type CvRuntime = {
-  Mat: new (rows?: number, cols?: number, type?: number) => CvMat
+  Mat: new () => CvMat
   MatVector: new () => CvMatVector
   Size: new (width: number, height: number) => unknown
   Point: new (x: number, y: number) => unknown
-  Rect: new (x: number, y: number, width: number, height: number) => unknown
   Scalar: new (...values: number[]) => unknown
-  CV_8UC1: number
   CV_32FC2: number
   COLOR_RGBA2GRAY: number
   RETR_EXTERNAL: number
@@ -2005,9 +2003,6 @@ type CvRuntime = {
   BORDER_REPLICATE: number
   THRESH_BINARY: number
   THRESH_OTSU: number
-  GC_FGD?: number
-  GC_PR_FGD?: number
-  GC_INIT_WITH_RECT?: number
   imread: (source: HTMLCanvasElement) => CvMat
   imshow: (target: HTMLCanvasElement, source: CvMat) => void
   cvtColor: (source: CvMat, target: CvMat, code: number) => void
@@ -2037,15 +2032,6 @@ type CvRuntime = {
   boxPoints: (box: CvRotatedRect) => Point[]
   matFromArray: (rows: number, cols: number, type: number, array: number[]) => CvMat
   getPerspectiveTransform: (source: CvMat, target: CvMat) => CvMat
-  grabCut?: (
-    source: CvMat,
-    mask: CvMat,
-    rectangle: unknown,
-    backgroundModel: CvMat,
-    foregroundModel: CvMat,
-    iterations: number,
-    mode: number,
-  ) => void
   warpPerspective: (
     source: CvMat,
     target: CvMat,
@@ -2064,7 +2050,6 @@ type CvModule = { default?: CvGlobal } & Record<string, unknown>
 type CvMat = {
   rows: number
   cols: number
-  data: Uint8Array
   data32S: Int32Array
   delete: () => void
 }
@@ -2269,10 +2254,6 @@ function detectDocumentQuadWithOpenCv(cv: CvRuntime, canvas: HTMLCanvasElement) 
   try {
     cv.cvtColor(source, gray, cv.COLOR_RGBA2GRAY)
     cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0)
-
-    const segmentedQuad = segmentDocumentWithOpenCv(cv, source, canvas.width, canvas.height)
-    if (segmentedQuad) return segmentedQuad
-
     cv.threshold(blurred, paperMask, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
     cv.morphologyEx(paperMask, paperMask, cv.MORPH_OPEN, smallKernel)
     cv.morphologyEx(paperMask, paperMask, cv.MORPH_CLOSE, largeKernel)
@@ -2291,58 +2272,6 @@ function detectDocumentQuadWithOpenCv(cv: CvRuntime, canvas: HTMLCanvasElement) 
     paperMask.delete()
     smallKernel.delete()
     largeKernel.delete()
-  }
-}
-
-function segmentDocumentWithOpenCv(
-  cv: CvRuntime,
-  source: CvMat,
-  width: number,
-  height: number,
-) {
-  if (
-    !cv.grabCut ||
-    typeof cv.GC_FGD !== 'number' ||
-    typeof cv.GC_PR_FGD !== 'number' ||
-    typeof cv.GC_INIT_WITH_RECT !== 'number'
-  ) {
-    return null
-  }
-
-  const insetX = Math.max(8, Math.round(width * 0.025))
-  const insetY = Math.max(8, Math.round(height * 0.025))
-  const mask = new cv.Mat()
-  const binaryMask = new cv.Mat(height, width, cv.CV_8UC1)
-  const backgroundModel = new cv.Mat()
-  const foregroundModel = new cv.Mat()
-  const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(17, 17))
-
-  try {
-    cv.grabCut(
-      source,
-      mask,
-      new cv.Rect(insetX, insetY, width - insetX * 2, height - insetY * 2),
-      backgroundModel,
-      foregroundModel,
-      3,
-      cv.GC_INIT_WITH_RECT,
-    )
-
-    for (let index = 0; index < mask.data.length; index += 1) {
-      binaryMask.data[index] =
-        mask.data[index] === cv.GC_FGD || mask.data[index] === cv.GC_PR_FGD ? 255 : 0
-    }
-
-    cv.morphologyEx(binaryMask, binaryMask, cv.MORPH_CLOSE, kernel)
-    return findBestOpenCvQuad(cv, binaryMask, width, height)
-  } catch {
-    return null
-  } finally {
-    mask.delete()
-    binaryMask.delete()
-    backgroundModel.delete()
-    foregroundModel.delete()
-    kernel.delete()
   }
 }
 
