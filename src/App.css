@@ -645,6 +645,170 @@ button:disabled {
   box-shadow: 0 28px 90px rgba(15, 23, 42, 0.2);
 }
 
+.crop-modal {
+  display: grid;
+  width: min(920px, 100%);
+  max-height: min(840px, calc(100svh - 40px));
+  overflow: hidden;
+  border: 1px solid rgba(240, 198, 107, 0.3);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 28px 90px rgba(15, 23, 42, 0.24);
+}
+
+.crop-modal header,
+.crop-modal footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+}
+
+.crop-modal header {
+  border-bottom: 1px solid rgba(226, 232, 240, 0.95);
+}
+
+.crop-modal h2 {
+  color: #111827;
+  font-size: 1.35rem;
+}
+
+.crop-modal header p {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.crop-modal footer {
+  border-top: 1px solid rgba(226, 232, 240, 0.95);
+  background: #f8fafc;
+}
+
+.crop-modal footer div {
+  display: flex;
+  gap: 10px;
+}
+
+.crop-stage {
+  position: relative;
+  display: grid;
+  width: min(100%, 820px);
+  aspect-ratio: var(--crop-aspect, 4 / 3);
+  max-height: min(62svh, 560px);
+  margin: 18px;
+  touch-action: none;
+  user-select: none;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 8px;
+  background: #111827;
+  cursor: move;
+}
+
+.crop-stage img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+.crop-dim {
+  position: absolute;
+  z-index: 1;
+  background: rgba(2, 8, 18, 0.56);
+  pointer-events: none;
+}
+
+.crop-dim-top {
+  top: 0;
+  right: 0;
+  left: 0;
+}
+
+.crop-dim-bottom {
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.crop-dim-left {
+  left: 0;
+}
+
+.crop-box {
+  position: absolute;
+  z-index: 2;
+  border: 2px solid #f0c66b;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+}
+
+.crop-box::before,
+.crop-box::after {
+  position: absolute;
+  content: '';
+}
+
+.crop-box::before {
+  top: 33.333%;
+  right: 0;
+  left: 0;
+  border-top: 1px dashed rgba(255, 255, 255, 0.52);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.52);
+  height: 33.333%;
+}
+
+.crop-box::after {
+  top: 0;
+  bottom: 0;
+  left: 33.333%;
+  border-left: 1px dashed rgba(255, 255, 255, 0.52);
+  border-right: 1px dashed rgba(255, 255, 255, 0.52);
+  width: 33.333%;
+}
+
+.crop-handle {
+  position: absolute;
+  z-index: 3;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: #d7a342;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.32);
+  pointer-events: auto;
+}
+
+.crop-handle.top-left {
+  top: -11px;
+  left: -11px;
+  cursor: nwse-resize;
+}
+
+.crop-handle.top-right {
+  top: -11px;
+  right: -11px;
+  cursor: nesw-resize;
+}
+
+.crop-handle.bottom-left {
+  bottom: -11px;
+  left: -11px;
+  cursor: nesw-resize;
+}
+
+.crop-handle.bottom-right {
+  right: -11px;
+  bottom: -11px;
+  cursor: nwse-resize;
+}
+
 .info-modal header {
   display: flex;
   align-items: center;

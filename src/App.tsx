@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, ChangeEvent, DragEvent, FormEvent, ReactNode, RefObject } from 'react'
+import type {
+  CSSProperties,
+  ChangeEvent,
+  DragEvent,
+  FormEvent,
+  PointerEvent,
+  ReactNode,
+  RefObject,
+} from 'react'
 import {
   ArrowDown,
   ArrowUp,
@@ -36,6 +44,7 @@ type PageImage = {
   name: string
   previewUrl: string
   rotation: number
+  crop?: CropArea
 }
 
 type PdfFile = {
@@ -44,6 +53,13 @@ type PdfFile = {
   name: string
   pages: number
   size: number
+}
+
+type CropArea = {
+  x: number
+  y: number
+  width: number
+  height: number
 }
 
 const A4 = {
@@ -299,6 +315,7 @@ function App() {
   const [isExporting, setIsExporting] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [infoPanel, setInfoPanel] = useState<InfoPanel | null>(null)
+  const [editingCropId, setEditingCropId] = useState<string | null>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const pdfInputRef = useRef<HTMLInputElement>(null)
 
@@ -422,6 +439,12 @@ function App() {
       current.map((image) =>
         image.id === id ? { ...image, rotation: (image.rotation + 90) % 360 } : image,
       ),
+    )
+  }
+
+  const updateImageCrop = (id: string, crop?: CropArea) => {
+    setImages((current) =>
+      current.map((image) => (image.id === id ? { ...image, crop } : image)),
     )
   }
 
@@ -809,6 +832,7 @@ function App() {
                 onFileChange={handleImageChange}
                 onRemove={removeImage}
                 onRotate={rotateImage}
+                onCrop={(id) => setEditingCropId(id)}
                 text={text}
               />
             ) : (
@@ -847,6 +871,19 @@ function App() {
 
       {infoPanel && (
         <InfoModal panel={infoPanel} language={language} onClose={() => setInfoPanel(null)} />
+      )}
+
+      {editingCropId && (
+        <CropModal
+          image={images.find((image) => image.id === editingCropId) ?? null}
+          text={text}
+          onClose={() => setEditingCropId(null)}
+          onSave={(crop) => {
+            updateImageCrop(editingCropId, crop)
+            setEditingCropId(null)
+          }}
+          onReset={() => updateImageCrop(editingCropId, undefined)}
+        />
       )}
     </main>
   )
@@ -1626,6 +1663,7 @@ function ScannerWorkspace({
   onMove,
   onRemove,
   onRotate,
+  onCrop,
 }: {
   images: PageImage[]
   inputRef: RefObject<HTMLInputElement | null>
@@ -1638,6 +1676,7 @@ function ScannerWorkspace({
   onMove: (id: string, direction: -1 | 1) => void
   onRemove: (id: string) => void
   onRotate: (id: string) => void
+  onCrop: (id: string) => void
 }) {
   const imageTitle = text.uploadImages
   const imageAction = languageText(text, 'Seleccionar imagenes', 'Select images')
@@ -1727,6 +1766,11 @@ function ScannerWorkspace({
                   icon={<RotateCw size={17} />}
                 />
                 <IconAction
+                  label={languageText(text, 'Recortar', 'Crop')}
+                  onClick={() => onCrop(image.id)}
+                  icon={<Scissors size={17} />}
+                />
+                <IconAction
                   label={languageText(text, 'Eliminar', 'Delete')}
                   danger
                   onClick={() => onRemove(image.id)}
@@ -1736,6 +1780,161 @@ function ScannerWorkspace({
             </div>
           </article>
         ))}
+      </div>
+    </div>
+  )
+}
+
+function CropModal({
+  image,
+  text,
+  onClose,
+  onSave,
+  onReset,
+}: {
+  image: PageImage | null
+  text: UiText
+  onClose: () => void
+  onSave: (crop: CropArea) => void
+  onReset: () => void
+}) {
+  const [crop, setCrop] = useState<CropArea>(
+    image?.crop ?? { x: 8, y: 8, width: 84, height: 84 },
+  )
+  const [imageSize, setImageSize] = useState({ width: 4, height: 3 })
+
+  if (!image) return null
+
+  const cropTitle = languageText(text, 'Recortar imagen', 'Crop image')
+  const cropHelp = languageText(
+    text,
+    'Ajusta el marco para dejar solo la parte que quieres convertir a PDF.',
+    'Adjust the frame to keep only the area you want to convert to PDF.',
+  )
+
+  const updateCrop = (
+    event: PointerEvent<HTMLElement>,
+    mode: 'move' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right',
+  ) => {
+    event.preventDefault()
+    const stage = event.currentTarget.closest('.crop-stage') as HTMLDivElement | null
+    if (!stage) return
+
+    stage.setPointerCapture(event.pointerId)
+    const frame = stage.getBoundingClientRect()
+    const startX = ((event.clientX - frame.left) / frame.width) * 100
+    const startY = ((event.clientY - frame.top) / frame.height) * 100
+    const startCrop = crop
+
+    const onPointerMove = (moveEvent: globalThis.PointerEvent) => {
+      const currentX = ((moveEvent.clientX - frame.left) / frame.width) * 100
+      const currentY = ((moveEvent.clientY - frame.top) / frame.height) * 100
+      const deltaX = currentX - startX
+      const deltaY = currentY - startY
+      setCrop(limitCrop(resizeCrop(startCrop, mode, deltaX, deltaY)))
+    }
+
+    const onPointerUp = () => {
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('pointerup', onPointerUp)
+    }
+
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', onPointerUp)
+  }
+
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={cropTitle}>
+      <div className="crop-modal">
+        <header>
+          <div>
+            <h2>{cropTitle}</h2>
+            <p>{cropHelp}</p>
+          </div>
+          <button className="icon-button" type="button" onClick={onClose} aria-label="Cerrar">
+            <X size={18} />
+          </button>
+        </header>
+
+        <div
+          className="crop-stage"
+          style={{
+            '--crop-aspect': `${imageSize.width} / ${imageSize.height}`,
+          } as CSSProperties}
+          onPointerDown={(event) => updateCrop(event, 'move')}
+        >
+          <img
+            src={image.previewUrl}
+            alt={image.name}
+            draggable={false}
+            onLoad={(event) => {
+              setImageSize({
+                width: event.currentTarget.naturalWidth || 4,
+                height: event.currentTarget.naturalHeight || 3,
+              })
+            }}
+          />
+          <div className="crop-dim crop-dim-top" style={{ height: `${crop.y}%` }} />
+          <div
+            className="crop-dim crop-dim-right"
+            style={{
+              top: `${crop.y}%`,
+              right: 0,
+              bottom: `${100 - crop.y - crop.height}%`,
+              width: `${100 - crop.x - crop.width}%`,
+            }}
+          />
+          <div className="crop-dim crop-dim-bottom" style={{ height: `${100 - crop.y - crop.height}%` }} />
+          <div
+            className="crop-dim crop-dim-left"
+            style={{
+              top: `${crop.y}%`,
+              bottom: `${100 - crop.y - crop.height}%`,
+              width: `${crop.x}%`,
+            }}
+          />
+          <div
+            className="crop-box"
+            style={{
+              left: `${crop.x}%`,
+              top: `${crop.y}%`,
+              width: `${crop.width}%`,
+              height: `${crop.height}%`,
+            }}
+          >
+            {(['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const).map((handle) => (
+              <span
+                className={`crop-handle ${handle}`}
+                key={handle}
+                onPointerDown={(event) => {
+                  event.stopPropagation()
+                  updateCrop(event, handle)
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <footer>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => {
+              onReset()
+              setCrop({ x: 8, y: 8, width: 84, height: 84 })
+            }}
+          >
+            {languageText(text, 'Quitar recorte', 'Remove crop')}
+          </button>
+          <div>
+            <button className="secondary-button" type="button" onClick={onClose}>
+              {languageText(text, 'Cancelar', 'Cancel')}
+            </button>
+            <button className="primary-button" type="button" onClick={() => onSave(crop)}>
+              {languageText(text, 'Guardar recorte', 'Save crop')}
+            </button>
+          </div>
+        </footer>
       </div>
     </div>
   )
@@ -1951,7 +2150,9 @@ function IconAction({
 
 async function renderImageToJpeg(image: PageImage) {
   const bitmap = await createImageBitmap(image.file)
-  const rotatedCanvas = drawRotatedImage(bitmap, image.rotation)
+  const sourceCanvas = drawImageToCanvas(bitmap)
+  const croppedCanvas = image.crop ? applyManualCrop(sourceCanvas, image.crop) : sourceCanvas
+  const rotatedCanvas = drawRotatedCanvas(croppedCanvas, image.rotation)
 
   const outputCanvas = enableAdvancedImageScan
     ? await renderAdvancedScannedImage(rotatedCanvas)
@@ -1963,6 +2164,76 @@ async function renderImageToJpeg(image: PageImage) {
     bytes,
     width: outputCanvas.width,
     height: outputCanvas.height,
+  }
+}
+
+function resizeCrop(
+  crop: CropArea,
+  mode: 'move' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right',
+  deltaX: number,
+  deltaY: number,
+) {
+  if (mode === 'move') {
+    return {
+      ...crop,
+      x: crop.x + deltaX,
+      y: crop.y + deltaY,
+    }
+  }
+
+  const next = { ...crop }
+
+  if (mode.includes('left')) {
+    next.x = crop.x + deltaX
+    next.width = crop.width - deltaX
+  }
+
+  if (mode.includes('right')) {
+    next.width = crop.width + deltaX
+  }
+
+  if (mode.includes('top')) {
+    next.y = crop.y + deltaY
+    next.height = crop.height - deltaY
+  }
+
+  if (mode.includes('bottom')) {
+    next.height = crop.height + deltaY
+  }
+
+  return next
+}
+
+function limitCrop(crop: CropArea) {
+  const minimum = 8
+  let width = Math.max(minimum, Math.min(100, crop.width))
+  let height = Math.max(minimum, Math.min(100, crop.height))
+  let x = crop.x
+  let y = crop.y
+
+  if (x < 0) {
+    width += x
+    x = 0
+  }
+
+  if (y < 0) {
+    height += y
+    y = 0
+  }
+
+  if (x + width > 100) {
+    width = 100 - x
+  }
+
+  if (y + height > 100) {
+    height = 100 - y
+  }
+
+  return {
+    x: clampNumber(x, 0, 100 - minimum),
+    y: clampNumber(y, 0, 100 - minimum),
+    width: Math.max(minimum, width),
+    height: Math.max(minimum, height),
   }
 }
 
@@ -2739,10 +3010,44 @@ function straightenDocument(canvas: HTMLCanvasElement) {
   return rotateCanvasByAngle(canvas, -angle)
 }
 
-function drawRotatedImage(bitmap: ImageBitmap, rotation: number) {
+function drawImageToCanvas(bitmap: ImageBitmap) {
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d')
+
+  if (!context) throw new Error('No se pudo preparar la imagen.')
+
+  canvas.width = bitmap.width
+  canvas.height = bitmap.height
+  context.fillStyle = '#ffffff'
+  context.fillRect(0, 0, canvas.width, canvas.height)
+  context.drawImage(bitmap, 0, 0)
+
+  return canvas
+}
+
+function applyManualCrop(canvas: HTMLCanvasElement, crop: CropArea) {
+  const x = Math.round((crop.x / 100) * canvas.width)
+  const y = Math.round((crop.y / 100) * canvas.height)
+  const width = Math.round((crop.width / 100) * canvas.width)
+  const height = Math.round((crop.height / 100) * canvas.height)
+  const output = document.createElement('canvas')
+  const context = output.getContext('2d')
+
+  if (!context || width < 2 || height < 2) return canvas
+
+  output.width = width
+  output.height = height
+  context.fillStyle = '#ffffff'
+  context.fillRect(0, 0, width, height)
+  context.drawImage(canvas, x, y, width, height, 0, 0, width, height)
+
+  return output
+}
+
+function drawRotatedCanvas(source: HTMLCanvasElement, rotation: number) {
   const isQuarterTurn = rotation === 90 || rotation === 270
-  const width = isQuarterTurn ? bitmap.height : bitmap.width
-  const height = isQuarterTurn ? bitmap.width : bitmap.height
+  const width = isQuarterTurn ? source.height : source.width
+  const height = isQuarterTurn ? source.width : source.height
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('2d')
 
@@ -2754,7 +3059,7 @@ function drawRotatedImage(bitmap: ImageBitmap, rotation: number) {
   context.fillRect(0, 0, width, height)
   context.translate(width / 2, height / 2)
   context.rotate((rotation * Math.PI) / 180)
-  context.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2)
+  context.drawImage(source, -source.width / 2, -source.height / 2)
 
   return canvas
 }
