@@ -148,6 +148,73 @@ const toolText: Record<Language, Record<Tool, { label: string; description: stri
   },
 }
 
+const seoMeta: Record<Language, Record<Tool, { title: string; description: string }>> = {
+  es: {
+    scanner: {
+      title: 'SpartaPDF | Convertir imagen a PDF gratis online',
+      description:
+        'Convierte imágenes JPG, PNG o WEBP a PDF gratis desde el navegador. Recorta, ordena y crea documentos PDF sin subir archivos a servidores.',
+    },
+    merge: {
+      title: 'Unir PDF gratis online | SpartaPDF',
+      description:
+        'Une varios archivos PDF en un solo documento gratis, rápido y desde tu navegador. Sin registro y sin subir tus documentos a servidores.',
+    },
+    split: {
+      title: 'Dividir PDF gratis online | SpartaPDF',
+      description:
+        'Divide un PDF y extrae páginas o rangos concretos gratis desde el navegador. Herramienta privada, local y fácil de usar.',
+    },
+    rotate: {
+      title: 'Rotar PDF gratis online | SpartaPDF',
+      description:
+        'Rota páginas PDF 90, 180 o 270 grados gratis desde tu navegador. Corrige documentos PDF sin instalar programas.',
+    },
+    delete: {
+      title: 'Eliminar páginas de PDF gratis online | SpartaPDF',
+      description:
+        'Elimina páginas de un PDF gratis y descarga el documento final al instante. Todo se procesa localmente en tu navegador.',
+    },
+    watermark: {
+      title: 'Añadir marca de agua a PDF gratis | SpartaPDF',
+      description:
+        'Añade una marca de agua de texto a tus PDFs gratis desde el navegador. Herramienta rápida, privada y sin registro.',
+    },
+  },
+  en: {
+    scanner: {
+      title: 'SpartaPDF | Convert images to PDF online for free',
+      description:
+        'Convert JPG, PNG or WEBP images to PDF for free in your browser. Crop, reorder and create PDF documents without uploading files to servers.',
+    },
+    merge: {
+      title: 'Merge PDF online for free | SpartaPDF',
+      description:
+        'Merge multiple PDF files into one document for free, quickly and directly in your browser. No sign-up and no server uploads.',
+    },
+    split: {
+      title: 'Split PDF online for free | SpartaPDF',
+      description:
+        'Split a PDF and extract selected pages or page ranges for free in your browser. A private, local and easy PDF tool.',
+    },
+    rotate: {
+      title: 'Rotate PDF online for free | SpartaPDF',
+      description:
+        'Rotate PDF pages 90, 180 or 270 degrees for free in your browser. Fix PDF documents without installing software.',
+    },
+    delete: {
+      title: 'Delete PDF pages online for free | SpartaPDF',
+      description:
+        'Remove pages from a PDF for free and download the final document instantly. Everything is processed locally in your browser.',
+    },
+    watermark: {
+      title: 'Add watermark to PDF for free | SpartaPDF',
+      description:
+        'Add a text watermark to your PDFs for free in your browser. A fast, private PDF tool with no sign-up.',
+    },
+  },
+}
+
 const uiText = {
   es: {
     activeTool: 'Herramienta activa',
@@ -338,26 +405,30 @@ function App() {
   }, [location.pathname])
 
   useEffect(() => {
+    const meta = seoMeta[language][activeTool]
+    const canonicalPath = getCanonicalPath(location.pathname, activeTool)
+    const canonicalUrl = `https://spartapdf.com${canonicalPath}`
+
     document.documentElement.lang = language
-    document.title =
-      activeTool === 'scanner'
-        ? text.pageTitle
-        : `${activeToolMeta.label} | SpartaPDF`
-    document
-      .querySelector('meta[name="description"]')
-      ?.setAttribute(
-        'content',
-        activeTool === 'scanner'
-          ? text.pageDescription
-          : `${activeToolMeta.description} ${text.pageDescription}`,
-      )
-    document
-      .querySelector('link[rel="canonical"]')
-      ?.setAttribute(
-        'href',
-        `https://spartapdf.com${toolRoutes[activeTool]}`,
-      )
-  }, [activeTool, activeToolMeta.description, activeToolMeta.label, language, text.pageDescription, text.pageTitle])
+    document.title = meta.title
+    setMeta('name', 'description', meta.description)
+    setMeta('name', 'robots', 'index, follow')
+    setMeta('http-equiv', 'content-language', language)
+    setLink('canonical', canonicalUrl)
+    setAlternateLinks(canonicalUrl)
+    setMeta('property', 'og:type', 'website')
+    setMeta('property', 'og:site_name', 'SpartaPDF')
+    setMeta('property', 'og:title', meta.title)
+    setMeta('property', 'og:description', meta.description)
+    setMeta('property', 'og:url', canonicalUrl)
+    setMeta('property', 'og:image', 'https://spartapdf.com/sparta-logo.png')
+    setMeta('property', 'og:locale', language === 'es' ? 'es_ES' : 'en_US')
+    setMeta('property', 'og:locale:alternate', language === 'es' ? 'en_US' : 'es_ES')
+    setMeta('name', 'twitter:card', 'summary_large_image')
+    setMeta('name', 'twitter:title', meta.title)
+    setMeta('name', 'twitter:description', meta.description)
+    setMeta('name', 'twitter:image', 'https://spartapdf.com/sparta-logo.png')
+  }, [activeTool, language, location.pathname])
 
   const addImages = (fileList: FileList | null) => {
     if (!fileList) return
@@ -3935,6 +4006,8 @@ function formatBytes(bytes: number) {
 }
 
 function detectLanguage(): Language {
+  if (isSearchCrawler()) return 'es'
+
   const preferredLanguages =
     typeof navigator === 'undefined'
       ? []
@@ -3945,10 +4018,63 @@ function detectLanguage(): Language {
     : 'en'
 }
 
+function isSearchCrawler() {
+  if (typeof navigator === 'undefined') return false
+
+  return /bot|crawl|spider|slurp|bingpreview|facebookexternalhit|whatsapp|telegrambot|linkedinbot|google-inspectiontool/i.test(
+    navigator.userAgent,
+  )
+}
+
 function getToolFromPath(pathname: string): Tool {
   if (pathname === '/' || pathname === '') return 'scanner'
 
   return routeTools.get(pathname) ?? 'scanner'
+}
+
+function getCanonicalPath(pathname: string, activeTool: Tool) {
+  if (pathname === '/' || pathname === '') return '/'
+
+  return toolRoutes[activeTool]
+}
+
+function setMeta(attribute: 'name' | 'property' | 'http-equiv', key: string, content: string) {
+  let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`)
+
+  if (!element) {
+    element = document.createElement('meta')
+    element.setAttribute(attribute, key)
+    document.head.appendChild(element)
+  }
+
+  element.setAttribute('content', content)
+}
+
+function setLink(rel: string, href: string) {
+  let element = document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`)
+
+  if (!element) {
+    element = document.createElement('link')
+    element.rel = rel
+    document.head.appendChild(element)
+  }
+
+  element.href = href
+}
+
+function setAlternateLinks(href: string) {
+  document.head
+    .querySelectorAll('link[rel="alternate"][data-spartapdf-seo="true"]')
+    .forEach((element) => element.remove())
+
+  for (const hreflang of ['es', 'x-default']) {
+    const link = document.createElement('link')
+    link.rel = 'alternate'
+    link.hreflang = hreflang
+    link.href = href
+    link.dataset.spartapdfSeo = 'true'
+    document.head.appendChild(link)
+  }
 }
 
 function languageText(text: UiText, spanish: string, english: string) {
