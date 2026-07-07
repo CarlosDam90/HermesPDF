@@ -37,7 +37,7 @@ import './App.css'
 
 type Tool = 'scanner' | 'merge' | 'split' | 'rotate' | 'delete' | 'watermark'
 type InfoPanel = 'about' | 'contact' | 'privacy' | 'terms' | 'help'
-type Language = 'es' | 'en'
+type Language = 'es' | 'en' | 'fr' | 'it' | 'de' | 'pt'
 
 type PageImage = {
   id: string
@@ -72,6 +72,25 @@ const SCANNER_PDF_MARGIN = 24
 
 const toolOrder: Tool[] = ['scanner', 'merge', 'split', 'rotate', 'delete', 'watermark']
 const enableAdvancedImageScan = false
+const supportedLanguages: Language[] = ['es', 'en', 'fr', 'it', 'de', 'pt']
+const languagePrefixes: Record<Language, string> = {
+  es: '',
+  en: '/en',
+  fr: '/fr',
+  it: '/it',
+  de: '/de',
+  pt: '/pt',
+}
+const localizedRouteAliases: Partial<Record<Language, Partial<Record<Tool, string>>>> = {
+  en: {
+    scanner: '/image-to-pdf',
+    merge: '/merge-pdf',
+    split: '/split-pdf',
+    rotate: '/rotate-pdf',
+    delete: '/delete-pdf-pages',
+    watermark: '/watermark-pdf',
+  },
+}
 
 const toolRoutes: Record<Tool, string> = {
   scanner: '/imagen-a-pdf',
@@ -146,6 +165,110 @@ const toolText: Record<Language, Record<Tool, { label: string; description: stri
       description: 'Add soft text to every page.',
     },
   },
+  fr: {
+    scanner: {
+      label: 'Image en PDF',
+      description: 'Convertissez des images en PDF A4 avec recadrage.',
+    },
+    merge: {
+      label: 'Fusionner PDF',
+      description: 'Combinez plusieurs PDF en un seul fichier.',
+    },
+    split: {
+      label: 'Diviser PDF',
+      description: 'Extrayez des pages ou des plages précises.',
+    },
+    rotate: {
+      label: 'Pivoter PDF',
+      description: 'Faites pivoter toutes les pages d’un PDF.',
+    },
+    delete: {
+      label: 'Supprimer pages',
+      description: 'Retirez des pages ou des plages d’un PDF.',
+    },
+    watermark: {
+      label: 'Filigrane',
+      description: 'Ajoutez un texte discret à toutes les pages.',
+    },
+  },
+  it: {
+    scanner: {
+      label: 'Immagine in PDF',
+      description: 'Converti immagini in PDF A4 con ritaglio.',
+    },
+    merge: {
+      label: 'Unisci PDF',
+      description: 'Combina più PDF in un unico file.',
+    },
+    split: {
+      label: 'Dividi PDF',
+      description: 'Estrai pagine o intervalli specifici.',
+    },
+    rotate: {
+      label: 'Ruota PDF',
+      description: 'Ruota tutte le pagine di un PDF.',
+    },
+    delete: {
+      label: 'Elimina pagine',
+      description: 'Rimuovi pagine o intervalli da un PDF.',
+    },
+    watermark: {
+      label: 'Filigrana',
+      description: 'Aggiungi un testo leggero a tutte le pagine.',
+    },
+  },
+  de: {
+    scanner: {
+      label: 'Bild zu PDF',
+      description: 'Bilder zuschneiden und als A4-PDF erstellen.',
+    },
+    merge: {
+      label: 'PDF zusammenfügen',
+      description: 'Mehrere PDFs zu einer Datei kombinieren.',
+    },
+    split: {
+      label: 'PDF teilen',
+      description: 'Bestimmte Seiten oder Bereiche extrahieren.',
+    },
+    rotate: {
+      label: 'PDF drehen',
+      description: 'Alle Seiten eines PDFs drehen.',
+    },
+    delete: {
+      label: 'Seiten löschen',
+      description: 'Seiten oder Bereiche aus einem PDF entfernen.',
+    },
+    watermark: {
+      label: 'Wasserzeichen',
+      description: 'Dezenten Text auf allen Seiten hinzufügen.',
+    },
+  },
+  pt: {
+    scanner: {
+      label: 'Imagem para PDF',
+      description: 'Converta imagens em PDF A4 com recorte.',
+    },
+    merge: {
+      label: 'Unir PDF',
+      description: 'Combine vários PDFs em um único arquivo.',
+    },
+    split: {
+      label: 'Dividir PDF',
+      description: 'Extraia páginas ou intervalos específicos.',
+    },
+    rotate: {
+      label: 'Rodar PDF',
+      description: 'Rode todas as páginas de um PDF.',
+    },
+    delete: {
+      label: 'Eliminar páginas',
+      description: 'Remova páginas ou intervalos de um PDF.',
+    },
+    watermark: {
+      label: 'Marca d’água',
+      description: 'Adicione texto suave a todas as páginas.',
+    },
+  },
 }
 
 const seoMeta: Record<Language, Record<Tool, { title: string; description: string }>> = {
@@ -211,6 +334,134 @@ const seoMeta: Record<Language, Record<Tool, { title: string; description: strin
       title: 'Add watermark to PDF for free | SpartaPDF',
       description:
         'Add a text watermark to your PDFs for free in your browser. A fast, private PDF tool with no sign-up.',
+    },
+  },
+  fr: {
+    scanner: {
+      title: 'SpartaPDF | Convertir une image en PDF gratuitement',
+      description:
+        'Convertissez des images JPG, PNG ou WEBP en PDF gratuitement dans votre navigateur. Recadrez, organisez et créez des PDF sans envoyer vos fichiers.',
+    },
+    merge: {
+      title: 'Fusionner PDF gratuitement en ligne | SpartaPDF',
+      description:
+        'Fusionnez plusieurs fichiers PDF en un seul document gratuitement, rapidement et directement dans votre navigateur.',
+    },
+    split: {
+      title: 'Diviser PDF gratuitement en ligne | SpartaPDF',
+      description:
+        'Divisez un PDF et extrayez des pages ou des plages précises gratuitement depuis votre navigateur.',
+    },
+    rotate: {
+      title: 'Pivoter PDF gratuitement en ligne | SpartaPDF',
+      description:
+        'Faites pivoter les pages PDF à 90, 180 ou 270 degrés gratuitement dans votre navigateur.',
+    },
+    delete: {
+      title: 'Supprimer des pages PDF gratuitement | SpartaPDF',
+      description:
+        'Supprimez des pages d’un PDF gratuitement et téléchargez le document final instantanément.',
+    },
+    watermark: {
+      title: 'Ajouter un filigrane à un PDF gratuitement | SpartaPDF',
+      description:
+        'Ajoutez un filigrane texte à vos PDF gratuitement depuis le navigateur. Rapide, privé et sans inscription.',
+    },
+  },
+  it: {
+    scanner: {
+      title: 'SpartaPDF | Convertire immagini in PDF gratis online',
+      description:
+        'Converti immagini JPG, PNG o WEBP in PDF gratis dal browser. Ritaglia, ordina e crea PDF senza caricare file su server.',
+    },
+    merge: {
+      title: 'Unire PDF gratis online | SpartaPDF',
+      description:
+        'Unisci più file PDF in un unico documento gratis, velocemente e direttamente dal browser.',
+    },
+    split: {
+      title: 'Dividere PDF gratis online | SpartaPDF',
+      description:
+        'Dividi un PDF ed estrai pagine o intervalli specifici gratis dal browser.',
+    },
+    rotate: {
+      title: 'Ruotare PDF gratis online | SpartaPDF',
+      description:
+        'Ruota pagine PDF di 90, 180 o 270 gradi gratis dal browser.',
+    },
+    delete: {
+      title: 'Eliminare pagine PDF gratis online | SpartaPDF',
+      description:
+        'Rimuovi pagine da un PDF gratis e scarica subito il documento finale.',
+    },
+    watermark: {
+      title: 'Aggiungere filigrana a PDF gratis | SpartaPDF',
+      description:
+        'Aggiungi una filigrana testuale ai tuoi PDF gratis dal browser. Veloce, privato e senza registrazione.',
+    },
+  },
+  de: {
+    scanner: {
+      title: 'SpartaPDF | Bilder kostenlos online in PDF umwandeln',
+      description:
+        'Wandeln Sie JPG-, PNG- oder WEBP-Bilder kostenlos im Browser in PDF um. Zuschneiden, sortieren und PDF erstellen ohne Upload.',
+    },
+    merge: {
+      title: 'PDF kostenlos online zusammenfügen | SpartaPDF',
+      description:
+        'Fügen Sie mehrere PDF-Dateien kostenlos, schnell und direkt im Browser zu einem Dokument zusammen.',
+    },
+    split: {
+      title: 'PDF kostenlos online teilen | SpartaPDF',
+      description:
+        'Teilen Sie ein PDF und extrahieren Sie ausgewählte Seiten oder Seitenbereiche kostenlos im Browser.',
+    },
+    rotate: {
+      title: 'PDF kostenlos online drehen | SpartaPDF',
+      description:
+        'Drehen Sie PDF-Seiten kostenlos um 90, 180 oder 270 Grad direkt im Browser.',
+    },
+    delete: {
+      title: 'PDF-Seiten kostenlos löschen | SpartaPDF',
+      description:
+        'Entfernen Sie Seiten aus einem PDF kostenlos und laden Sie das fertige Dokument sofort herunter.',
+    },
+    watermark: {
+      title: 'Wasserzeichen kostenlos zu PDF hinzufügen | SpartaPDF',
+      description:
+        'Fügen Sie Ihren PDFs kostenlos ein Text-Wasserzeichen hinzu. Schnell, privat und ohne Registrierung.',
+    },
+  },
+  pt: {
+    scanner: {
+      title: 'SpartaPDF | Converter imagem para PDF grátis online',
+      description:
+        'Converta imagens JPG, PNG ou WEBP para PDF grátis no navegador. Recorte, organize e crie PDFs sem enviar arquivos para servidores.',
+    },
+    merge: {
+      title: 'Unir PDF grátis online | SpartaPDF',
+      description:
+        'Una vários arquivos PDF em um único documento grátis, rápido e diretamente no navegador.',
+    },
+    split: {
+      title: 'Dividir PDF grátis online | SpartaPDF',
+      description:
+        'Divida um PDF e extraia páginas ou intervalos específicos grátis no navegador.',
+    },
+    rotate: {
+      title: 'Rodar PDF grátis online | SpartaPDF',
+      description:
+        'Rode páginas PDF 90, 180 ou 270 graus grátis diretamente no navegador.',
+    },
+    delete: {
+      title: 'Eliminar páginas de PDF grátis | SpartaPDF',
+      description:
+        'Remova páginas de um PDF grátis e baixe o documento final instantaneamente.',
+    },
+    watermark: {
+      title: 'Adicionar marca d’água a PDF grátis | SpartaPDF',
+      description:
+        'Adicione uma marca d’água de texto aos seus PDFs grátis no navegador. Rápido, privado e sem cadastro.',
     },
   },
 }
@@ -369,10 +620,11 @@ function getTools(language: Language) {
 function App() {
   const location = useLocation()
   const navigate = useNavigate()
-  const [language] = useState<Language>(() => detectLanguage())
-  const text = uiText[language]
+  const currentLanguage = useMemo(() => getLanguageFromPath(location.pathname) ?? detectLanguage(), [location.pathname])
+  const language = currentLanguage
+  const text = getUiText(language)
   const localizedTools = useMemo(() => getTools(language), [language])
-  const [activeTool, setActiveTool] = useState<Tool>(() => getToolFromPath(window.location.pathname))
+  const [activeTool, setActiveTool] = useState<Tool>(() => getToolFromPath(window.location.pathname).tool)
   const [images, setImages] = useState<PageImage[]>([])
   const [pdfFiles, setPdfFiles] = useState<PdfFile[]>([])
   const [pageSelection, setPageSelection] = useState('1')
@@ -399,7 +651,7 @@ function App() {
     (activeTool !== 'scanner' && pdfFiles.length === 0)
 
   useEffect(() => {
-    const toolFromRoute = getToolFromPath(location.pathname)
+    const { tool: toolFromRoute } = getToolFromPath(location.pathname)
     setActiveTool(toolFromRoute)
     setStatus('')
   }, [location.pathname])
@@ -415,15 +667,15 @@ function App() {
     setMeta('name', 'robots', 'index, follow')
     setMeta('http-equiv', 'content-language', language)
     setLink('canonical', canonicalUrl)
-    setAlternateLinks(canonicalUrl)
+    setAlternateLinks(canonicalUrl, activeTool)
     setMeta('property', 'og:type', 'website')
     setMeta('property', 'og:site_name', 'SpartaPDF')
     setMeta('property', 'og:title', meta.title)
     setMeta('property', 'og:description', meta.description)
     setMeta('property', 'og:url', canonicalUrl)
     setMeta('property', 'og:image', 'https://spartapdf.com/sparta-logo.png')
-    setMeta('property', 'og:locale', language === 'es' ? 'es_ES' : 'en_US')
-    setMeta('property', 'og:locale:alternate', language === 'es' ? 'en_US' : 'es_ES')
+    setMeta('property', 'og:locale', getOpenGraphLocale(language))
+    setMeta('property', 'og:locale:alternate', 'en_US')
     setMeta('name', 'twitter:card', 'summary_large_image')
     setMeta('name', 'twitter:title', meta.title)
     setMeta('name', 'twitter:description', meta.description)
@@ -765,7 +1017,7 @@ function App() {
             className="site-brand"
             type="button"
             aria-label="SpartaPDF - Inicio"
-            onClick={() => navigate('/')}
+            onClick={() => navigate(getLocalizedPath(language, 'scanner', true))}
           >
             <img className="site-mark-image" src="/sparta-mark.png" alt="" aria-hidden="true" />
             <p className="site-wordmark">
@@ -968,7 +1220,7 @@ function App() {
   function selectTool(tool: Tool) {
     setActiveTool(tool)
     setStatus('')
-    navigate(toolRoutes[tool])
+    navigate(getLocalizedPath(language, tool))
   }
 }
 
@@ -1024,8 +1276,9 @@ function SiteFooter({
       language: 'English',
       made: 'Made for working with documents without friction.',
     },
-  } satisfies Record<Language, Record<string, string>>
-  const content = footerText[language]
+  }
+  const content =
+    (footerText as Partial<Record<Language, Record<string, string>>>)[language] ?? footerText.en
 
   return (
     <footer className="site-footer">
@@ -1224,7 +1477,7 @@ function TrustAndHowItWorks({
         </div>
 
         <div className="seo-grid">
-          {seoTopics[language].map((topic) => (
+          {((seoTopics as Partial<Record<Language, typeof seoTopics.en>>)[language] ?? seoTopics.en).map((topic) => (
             <SeoTopic key={topic.title} title={topic.title}>
               {topic.body}
             </SeoTopic>
@@ -1364,8 +1617,8 @@ function InfoModal({
         ],
       },
     },
-  } satisfies Record<Language, Record<InfoPanel, { icon: ReactNode; title: string; body: string[] }>>
-  const item = content[language][panel]
+  }
+  const item = ((content as Partial<Record<Language, typeof content.en>>)[language] ?? content.en)[panel]
 
   function handleContactSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -4013,9 +4266,13 @@ function detectLanguage(): Language {
       ? []
       : [navigator.language, ...(navigator.languages ?? [])]
 
-  return preferredLanguages.some((language) => language.toLowerCase().startsWith('es'))
-    ? 'es'
-    : 'en'
+  for (const language of preferredLanguages) {
+    const normalized = language.toLowerCase()
+    const match = supportedLanguages.find((supported) => normalized.startsWith(supported))
+    if (match) return match
+  }
+
+  return 'en'
 }
 
 function isSearchCrawler() {
@@ -4026,16 +4283,61 @@ function isSearchCrawler() {
   )
 }
 
-function getToolFromPath(pathname: string): Tool {
-  if (pathname === '/' || pathname === '') return 'scanner'
+function getUiText(language: Language): UiText {
+  return (uiText as Partial<Record<Language, UiText>>)[language] ?? uiText.en
+}
 
-  return routeTools.get(pathname) ?? 'scanner'
+function getLanguageFromPath(pathname: string): Language | null {
+  const firstSegment = pathname.split('/').filter(Boolean)[0]
+
+  if (!firstSegment) return 'es'
+  return supportedLanguages.includes(firstSegment as Language) ? (firstSegment as Language) : null
+}
+
+function stripLanguagePrefix(pathname: string) {
+  const language = getLanguageFromPath(pathname)
+  if (!language || language === 'es') return pathname || '/'
+
+  const prefix = languagePrefixes[language]
+  const stripped = pathname.startsWith(prefix) ? pathname.slice(prefix.length) : pathname
+  return stripped || '/'
+}
+
+function getToolFromPath(pathname: string): { language: Language; tool: Tool } {
+  const language = getLanguageFromPath(pathname) ?? 'es'
+  const pathWithoutLanguage = stripLanguagePrefix(pathname)
+
+  if (pathWithoutLanguage === '/' || pathWithoutLanguage === '') return { language, tool: 'scanner' }
+
+  for (const tool of toolOrder) {
+    const defaultRoute = toolRoutes[tool]
+    const localizedRoute = localizedRouteAliases[language]?.[tool]
+
+    if (pathWithoutLanguage === defaultRoute || pathWithoutLanguage === localizedRoute) {
+      return { language, tool }
+    }
+  }
+
+  return { language, tool: routeTools.get(pathWithoutLanguage) ?? 'scanner' }
 }
 
 function getCanonicalPath(pathname: string, activeTool: Tool) {
-  if (pathname === '/' || pathname === '') return '/'
+  const language = getLanguageFromPath(pathname) ?? 'es'
+  const pathWithoutLanguage = stripLanguagePrefix(pathname)
 
-  return toolRoutes[activeTool]
+  if (pathWithoutLanguage === '/' || pathWithoutLanguage === '') {
+    return languagePrefixes[language] || '/'
+  }
+
+  return getLocalizedPath(language, activeTool)
+}
+
+function getLocalizedPath(language: Language, tool: Tool, preferLanguageHome = false) {
+  const prefix = languagePrefixes[language]
+
+  if (tool === 'scanner' && preferLanguageHome) return prefix || '/'
+
+  return `${prefix}${localizedRouteAliases[language]?.[tool] ?? toolRoutes[tool]}`
 }
 
 function setMeta(attribute: 'name' | 'property' | 'http-equiv', key: string, content: string) {
@@ -4062,16 +4364,35 @@ function setLink(rel: string, href: string) {
   element.href = href
 }
 
-function setAlternateLinks(href: string) {
+function getOpenGraphLocale(language: Language) {
+  const locales: Record<Language, string> = {
+    es: 'es_ES',
+    en: 'en_US',
+    fr: 'fr_FR',
+    it: 'it_IT',
+    de: 'de_DE',
+    pt: 'pt_PT',
+  }
+
+  return locales[language]
+}
+
+function setAlternateLinks(_href: string, activeTool: Tool) {
   document.head
     .querySelectorAll('link[rel="alternate"][data-spartapdf-seo="true"]')
     .forEach((element) => element.remove())
 
-  for (const hreflang of ['es', 'x-default']) {
+  const alternates: Array<{ hreflang: string; href: string }> = supportedLanguages.map((language) => ({
+    hreflang: language,
+    href: `https://spartapdf.com${getLocalizedPath(language, activeTool, activeTool === 'scanner')}`,
+  }))
+  alternates.push({ hreflang: 'x-default', href: `https://spartapdf.com/` })
+
+  for (const alternate of alternates) {
     const link = document.createElement('link')
     link.rel = 'alternate'
-    link.hreflang = hreflang
-    link.href = href
+    link.hreflang = alternate.hreflang
+    link.href = alternate.href
     link.dataset.spartapdfSeo = 'true'
     document.head.appendChild(link)
   }
