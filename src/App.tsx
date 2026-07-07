@@ -466,6 +466,135 @@ const seoMeta: Record<Language, Record<Tool, { title: string; description: strin
   },
 }
 
+const seoFaq: Record<
+  Language,
+  {
+    title: string
+    items: Array<{ question: string; answer: string }>
+  }
+> = {
+  es: {
+    title: 'Preguntas frecuentes',
+    items: [
+      {
+        question: 'Es gratis usar SpartaPDF?',
+        answer:
+          'Si. Puedes convertir imagenes a PDF, unir, dividir, rotar, eliminar paginas y anadir marcas de agua gratis desde el navegador.',
+      },
+      {
+        question: 'Mis archivos se suben a un servidor?',
+        answer:
+          'No. Las herramientas principales procesan los archivos localmente en tu navegador, lo que ayuda a mantener tus documentos privados.',
+      },
+      {
+        question: 'Puedo usar SpartaPDF sin instalar programas?',
+        answer:
+          'Si. SpartaPDF funciona como herramienta web, asi que puedes trabajar con PDFs directamente desde el navegador.',
+      },
+    ],
+  },
+  en: {
+    title: 'Frequently asked questions',
+    items: [
+      {
+        question: 'Is SpartaPDF free to use?',
+        answer:
+          'Yes. You can convert images to PDF, merge, split, rotate, delete pages and add watermarks for free in your browser.',
+      },
+      {
+        question: 'Are my files uploaded to a server?',
+        answer:
+          'No. The main tools process files locally in your browser, helping keep your documents private.',
+      },
+      {
+        question: 'Can I use SpartaPDF without installing software?',
+        answer:
+          'Yes. SpartaPDF works as a web tool, so you can work with PDF files directly from your browser.',
+      },
+    ],
+  },
+  fr: {
+    title: 'Questions frequentes',
+    items: [
+      {
+        question: 'SpartaPDF est-il gratuit?',
+        answer:
+          'Oui. Vous pouvez convertir des images en PDF, fusionner, diviser, pivoter, supprimer des pages et ajouter un filigrane gratuitement.',
+      },
+      {
+        question: 'Mes fichiers sont-ils envoyes a un serveur?',
+        answer:
+          'Non. Les outils principaux traitent les fichiers localement dans votre navigateur pour aider a proteger vos documents.',
+      },
+      {
+        question: 'Puis-je utiliser SpartaPDF sans installer de logiciel?',
+        answer:
+          'Oui. SpartaPDF fonctionne comme un outil web directement depuis votre navigateur.',
+      },
+    ],
+  },
+  it: {
+    title: 'Domande frequenti',
+    items: [
+      {
+        question: 'SpartaPDF e gratuito?',
+        answer:
+          'Si. Puoi convertire immagini in PDF, unire, dividere, ruotare, eliminare pagine e aggiungere filigrane gratis dal browser.',
+      },
+      {
+        question: 'I miei file vengono caricati su un server?',
+        answer:
+          'No. Gli strumenti principali elaborano i file localmente nel browser, aiutando a mantenere privati i documenti.',
+      },
+      {
+        question: 'Posso usare SpartaPDF senza installare programmi?',
+        answer:
+          'Si. SpartaPDF funziona come strumento web direttamente dal browser.',
+      },
+    ],
+  },
+  de: {
+    title: 'Haufige Fragen',
+    items: [
+      {
+        question: 'Ist SpartaPDF kostenlos?',
+        answer:
+          'Ja. Sie konnen Bilder in PDF umwandeln, PDFs zusammenfugen, teilen, drehen, Seiten loschen und Wasserzeichen kostenlos im Browser hinzufugen.',
+      },
+      {
+        question: 'Werden meine Dateien auf einen Server hochgeladen?',
+        answer:
+          'Nein. Die wichtigsten Werkzeuge verarbeiten Dateien lokal im Browser und helfen so, Dokumente privat zu halten.',
+      },
+      {
+        question: 'Kann ich SpartaPDF ohne Installation nutzen?',
+        answer:
+          'Ja. SpartaPDF funktioniert als Web-Tool direkt im Browser.',
+      },
+    ],
+  },
+  pt: {
+    title: 'Perguntas frequentes',
+    items: [
+      {
+        question: 'O SpartaPDF e gratis?',
+        answer:
+          'Sim. Voce pode converter imagens para PDF, unir, dividir, rodar, eliminar paginas e adicionar marcas de agua gratis no navegador.',
+      },
+      {
+        question: 'Meus arquivos sao enviados para um servidor?',
+        answer:
+          'Nao. As principais ferramentas processam os arquivos localmente no navegador, ajudando a manter seus documentos privados.',
+      },
+      {
+        question: 'Posso usar SpartaPDF sem instalar programas?',
+        answer:
+          'Sim. SpartaPDF funciona como uma ferramenta web diretamente no navegador.',
+      },
+    ],
+  },
+}
+
 const uiText = {
   es: {
     activeTool: 'Herramienta activa',
@@ -680,6 +809,7 @@ function App() {
     setMeta('name', 'twitter:title', meta.title)
     setMeta('name', 'twitter:description', meta.description)
     setMeta('name', 'twitter:image', 'https://spartapdf.com/sparta-logo.png')
+    setStructuredData(language, activeTool, canonicalUrl)
   }, [activeTool, language, location.pathname])
 
   const addImages = (fileList: FileList | null) => {
@@ -1181,6 +1311,7 @@ function App() {
         </section>
 
         <TrustAndHowItWorks
+          activeTool={activeTool}
           language={language}
           text={text}
           onOpenPrivacy={() => openInfoPanel('privacy')}
@@ -1380,10 +1511,12 @@ function FooterColumn({ title, children }: { title: string; children: ReactNode 
 }
 
 function TrustAndHowItWorks({
+  activeTool,
   language,
   text,
   onOpenPrivacy,
 }: {
+  activeTool: Tool
   language: Language
   text: UiText
   onOpenPrivacy: () => void
@@ -1442,6 +1575,9 @@ function TrustAndHowItWorks({
       },
     ],
   }
+  const meta = seoMeta[language][activeTool]
+  const activeToolText = toolText[language][activeTool]
+  const faq = seoFaq[language]
 
   return (
     <section className="info-sections" aria-label="Informacion de SpartaPDF">
@@ -1481,6 +1617,25 @@ function TrustAndHowItWorks({
             <SeoTopic key={topic.title} title={topic.title}>
               {topic.body}
             </SeoTopic>
+          ))}
+        </div>
+      </section>
+
+      <section className="tool-seo-panel" aria-labelledby="tool-seo-title">
+        <div>
+          <p className="hero-kicker">{activeToolText.label}</p>
+          <h2 id="tool-seo-title">
+            {meta.title.replace(' | SpartaPDF', '').replace('SpartaPDF | ', '')}
+          </h2>
+          <p>{meta.description}</p>
+        </div>
+        <div className="faq-list">
+          <h3>{faq.title}</h3>
+          {faq.items.map((item) => (
+            <details key={item.question}>
+              <summary>{item.question}</summary>
+              <p>{item.answer}</p>
+            </details>
           ))}
         </div>
       </section>
@@ -4396,6 +4551,165 @@ function setAlternateLinks(_href: string, activeTool: Tool) {
     link.dataset.spartapdfSeo = 'true'
     document.head.appendChild(link)
   }
+}
+
+function setStructuredData(language: Language, activeTool: Tool, canonicalUrl: string) {
+  const meta = seoMeta[language][activeTool]
+  const activeToolText = toolText[language][activeTool]
+  const faq = seoFaq[language]
+  const schemaId = 'spartapdf-structured-data'
+  let script = document.getElementById(schemaId) as HTMLScriptElement | null
+
+  if (!script) {
+    script = document.createElement('script')
+    script.id = schemaId
+    script.type = 'application/ld+json'
+    document.head.appendChild(script)
+  }
+
+  const graph = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': 'https://spartapdf.com/#organization',
+        name: 'SpartaPDF',
+        url: 'https://spartapdf.com/',
+        logo: 'https://spartapdf.com/sparta-logo.png',
+      },
+      {
+        '@type': 'WebSite',
+        '@id': 'https://spartapdf.com/#website',
+        name: 'SpartaPDF',
+        url: 'https://spartapdf.com/',
+        inLanguage: supportedLanguages,
+        publisher: {
+          '@id': 'https://spartapdf.com/#organization',
+        },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: 'https://spartapdf.com/?q={search_term_string}',
+          'query-input': 'required name=search_term_string',
+        },
+      },
+      {
+        '@type': ['WebApplication', 'SoftwareApplication'],
+        '@id': `${canonicalUrl}#app`,
+        name: activeTool === 'scanner' ? 'SpartaPDF Image to PDF' : `SpartaPDF ${activeToolText.label}`,
+        alternateName: 'SpartaPDF',
+        url: canonicalUrl,
+        description: meta.description,
+        applicationCategory: 'ProductivityApplication',
+        operatingSystem: 'Web',
+        browserRequirements: 'Requires a modern web browser with JavaScript enabled.',
+        isAccessibleForFree: true,
+        inLanguage: language,
+        creator: {
+          '@id': 'https://spartapdf.com/#organization',
+        },
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'EUR',
+          availability: 'https://schema.org/InStock',
+        },
+        featureList: getStructuredFeatureList(language),
+        potentialAction: {
+          '@type': activeTool === 'scanner' ? 'ConvertAction' : 'UseAction',
+          name: activeToolText.label,
+          target: canonicalUrl,
+          object: activeTool === 'scanner' ? 'Image file' : 'PDF file',
+          result: 'PDF file',
+        },
+      },
+      {
+        '@type': 'HowTo',
+        '@id': `${canonicalUrl}#howto`,
+        name: getHowToTitle(language, activeToolText.label),
+        description: meta.description,
+        inLanguage: language,
+        tool: {
+          '@type': 'HowToTool',
+          name: 'SpartaPDF',
+        },
+        step: getHowToSteps(language).map((step, index) => ({
+          '@type': 'HowToStep',
+          position: index + 1,
+          name: step.name,
+          text: step.text,
+        })),
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${canonicalUrl}#faq`,
+        inLanguage: language,
+        mainEntity: faq.items.map((item) => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: item.answer,
+          },
+        })),
+      },
+    ],
+  }
+
+  script.textContent = JSON.stringify(graph)
+}
+
+function getStructuredFeatureList(language: Language) {
+  return toolOrder.map((tool) => toolText[language][tool].label)
+}
+
+function getHowToTitle(language: Language, toolLabel: string) {
+  const titles: Record<Language, string> = {
+    es: `Como usar ${toolLabel} en SpartaPDF`,
+    en: `How to use ${toolLabel} in SpartaPDF`,
+    fr: `Comment utiliser ${toolLabel} avec SpartaPDF`,
+    it: `Come usare ${toolLabel} con SpartaPDF`,
+    de: `So nutzen Sie ${toolLabel} mit SpartaPDF`,
+    pt: `Como usar ${toolLabel} no SpartaPDF`,
+  }
+
+  return titles[language]
+}
+
+function getHowToSteps(language: Language) {
+  const steps: Record<Language, Array<{ name: string; text: string }>> = {
+    es: [
+      { name: 'Sube tus archivos', text: 'Selecciona o arrastra imagenes o PDFs a la herramienta.' },
+      { name: 'Ajusta el documento', text: 'Ordena paginas, elige rangos, rota o configura el resultado.' },
+      { name: 'Descarga el PDF', text: 'Genera el archivo final y descargalo desde tu navegador.' },
+    ],
+    en: [
+      { name: 'Upload your files', text: 'Select or drop images or PDFs into the tool.' },
+      { name: 'Adjust the document', text: 'Reorder pages, choose ranges, rotate or configure the result.' },
+      { name: 'Download the PDF', text: 'Create the final file and download it from your browser.' },
+    ],
+    fr: [
+      { name: 'Ajoutez vos fichiers', text: 'Selectionnez ou deposez des images ou des PDF dans l outil.' },
+      { name: 'Ajustez le document', text: 'Organisez les pages, choisissez des plages ou configurez le resultat.' },
+      { name: 'Telechargez le PDF', text: 'Creez le fichier final et telechargez-le depuis le navigateur.' },
+    ],
+    it: [
+      { name: 'Carica i file', text: 'Seleziona o trascina immagini o PDF nello strumento.' },
+      { name: 'Regola il documento', text: 'Ordina pagine, scegli intervalli, ruota o configura il risultato.' },
+      { name: 'Scarica il PDF', text: 'Crea il file finale e scaricalo dal browser.' },
+    ],
+    de: [
+      { name: 'Dateien hochladen', text: 'Wahlen Sie Bilder oder PDFs aus oder ziehen Sie sie in das Werkzeug.' },
+      { name: 'Dokument anpassen', text: 'Sortieren Sie Seiten, wahlen Sie Bereiche oder konfigurieren Sie das Ergebnis.' },
+      { name: 'PDF herunterladen', text: 'Erstellen Sie die finale Datei und laden Sie sie im Browser herunter.' },
+    ],
+    pt: [
+      { name: 'Carregue seus arquivos', text: 'Selecione ou arraste imagens ou PDFs para a ferramenta.' },
+      { name: 'Ajuste o documento', text: 'Ordene paginas, escolha intervalos, rode ou configure o resultado.' },
+      { name: 'Baixe o PDF', text: 'Crie o arquivo final e baixe-o pelo navegador.' },
+    ],
+  }
+
+  return steps[language]
 }
 
 function languageText(text: UiText, spanish: string, english: string) {
