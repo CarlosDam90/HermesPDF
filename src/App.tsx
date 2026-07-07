@@ -7,6 +7,7 @@ import type {
   PointerEvent,
   ReactNode,
   RefObject,
+  SyntheticEvent,
 } from 'react'
 import {
   ArrowDown,
@@ -1798,10 +1799,60 @@ function CropModal({
   onSave: (crop: CropArea) => void
   onReset: () => void
 }) {
-  const [crop, setCrop] = useState<CropArea>(
-    image?.crop ?? { x: 8, y: 8, width: 84, height: 84 },
-  )
-  const [imageSize, setImageSize] = useState({ width: 4, height: 3 })
+  const fullCrop = { x: 0, y: 0, width: 100, height: 100 }
+  const [crop, setCrop] = useState<CropArea>(fullCrop)
+  const [viewportSize, setViewportSize] = useState(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }))
+  const [imageBounds, setImageBounds] = useState<CropArea | null>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
+  const cropImageRef = useRef<HTMLImageElement>(null)
+
+  useEffect(() => {
+    const updateViewportSize = () => {
+      setViewportSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+
+    window.addEventListener('resize', updateViewportSize)
+    return () => window.removeEventListener('resize', updateViewportSize)
+  }, [])
+
+  useEffect(() => {
+    setCrop(fullCrop)
+  }, [image?.id])
+
+  const updateImageBounds = () => {
+    const stage = stageRef.current
+    const imageElement = cropImageRef.current
+
+    if (!stage || !imageElement) return
+
+    const stageRect = stage.getBoundingClientRect()
+    const imageRect = imageElement.getBoundingClientRect()
+
+    setImageBounds({
+      x: imageRect.left - stageRect.left,
+      y: imageRect.top - stageRect.top,
+      width: imageRect.width,
+      height: imageRect.height,
+    })
+  }
+
+  useEffect(() => {
+    const observer = new ResizeObserver(updateImageBounds)
+    const stage = stageRef.current
+    const imageElement = cropImageRef.current
+
+    if (stage) observer.observe(stage)
+    if (imageElement) observer.observe(imageElement)
+
+    updateImageBounds()
+    return () => observer.disconnect()
+  }, [viewportSize, image?.id])
 
   if (!image) return null
 
@@ -1811,17 +1862,22 @@ function CropModal({
     'Ajusta el marco para dejar solo la parte que quieres convertir a PDF.',
     'Adjust the frame to keep only the area you want to convert to PDF.',
   )
+  const maxStageWidth = Math.min(540, Math.max(260, viewportSize.width - 76))
+  const maxStageHeightRatio = viewportSize.width <= 760 ? 0.54 : 0.62
+  const maxStageHeight = Math.min(640, Math.max(280, viewportSize.height * maxStageHeightRatio))
+  const stageWidth = Math.min(maxStageWidth, maxStageHeight * 0.72)
+  const stageHeight = Math.min(maxStageHeight, stageWidth / 0.72)
 
   const updateCrop = (
     event: PointerEvent<HTMLElement>,
     mode: 'move' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right',
   ) => {
     event.preventDefault()
-    const stage = event.currentTarget.closest('.crop-stage') as HTMLDivElement | null
-    if (!stage) return
+    const cropLayer = event.currentTarget.closest('.crop-layer') as HTMLDivElement | null
+    if (!cropLayer) return
 
-    stage.setPointerCapture(event.pointerId)
-    const frame = stage.getBoundingClientRect()
+    cropLayer.setPointerCapture(event.pointerId)
+    const frame = cropLayer.getBoundingClientRect()
     const startX = ((event.clientX - frame.left) / frame.width) * 100
     const startY = ((event.clientY - frame.top) / frame.height) * 100
     const startCrop = crop
@@ -1843,6 +1899,14 @@ function CropModal({
     window.addEventListener('pointerup', onPointerUp)
   }
 
+  const handleImageLoad = (_event: SyntheticEvent<HTMLImageElement>) => {
+    requestAnimationFrame(updateImageBounds)
+  }
+
+  const saveCrop = () => {
+    onSave(crop)
+  }
+
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={cropTitle}>
       <div className="crop-modal">
@@ -1858,61 +1922,72 @@ function CropModal({
 
         <div
           className="crop-stage"
+          ref={stageRef}
           style={{
-            '--crop-aspect': `${imageSize.width} / ${imageSize.height}`,
+            width: `${stageWidth}px`,
+            height: `${stageHeight}px`,
           } as CSSProperties}
-          onPointerDown={(event) => updateCrop(event, 'move')}
         >
           <img
+            className="crop-image"
+            ref={cropImageRef}
             src={image.previewUrl}
             alt={image.name}
             draggable={false}
-            onLoad={(event) => {
-              setImageSize({
-                width: event.currentTarget.naturalWidth || 4,
-                height: event.currentTarget.naturalHeight || 3,
-              })
-            }}
+            onLoad={handleImageLoad}
           />
-          <div className="crop-dim crop-dim-top" style={{ height: `${crop.y}%` }} />
-          <div
-            className="crop-dim crop-dim-right"
-            style={{
-              top: `${crop.y}%`,
-              right: 0,
-              bottom: `${100 - crop.y - crop.height}%`,
-              width: `${100 - crop.x - crop.width}%`,
-            }}
-          />
-          <div className="crop-dim crop-dim-bottom" style={{ height: `${100 - crop.y - crop.height}%` }} />
-          <div
-            className="crop-dim crop-dim-left"
-            style={{
-              top: `${crop.y}%`,
-              bottom: `${100 - crop.y - crop.height}%`,
-              width: `${crop.x}%`,
-            }}
-          />
-          <div
-            className="crop-box"
-            style={{
-              left: `${crop.x}%`,
-              top: `${crop.y}%`,
-              width: `${crop.width}%`,
-              height: `${crop.height}%`,
-            }}
-          >
-            {(['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const).map((handle) => (
-              <span
-                className={`crop-handle ${handle}`}
-                key={handle}
-                onPointerDown={(event) => {
-                  event.stopPropagation()
-                  updateCrop(event, handle)
+          {imageBounds && (
+            <div
+              className="crop-layer"
+              style={{
+                left: `${imageBounds.x}px`,
+                top: `${imageBounds.y}px`,
+                width: `${imageBounds.width}px`,
+                height: `${imageBounds.height}px`,
+              }}
+              onPointerDown={(event) => updateCrop(event, 'move')}
+            >
+              <div className="crop-dim crop-dim-top" style={{ height: `${crop.y}%` }} />
+              <div
+                className="crop-dim crop-dim-right"
+                style={{
+                  top: `${crop.y}%`,
+                  right: 0,
+                  bottom: `${100 - crop.y - crop.height}%`,
+                  width: `${100 - crop.x - crop.width}%`,
                 }}
               />
-            ))}
-          </div>
+              <div className="crop-dim crop-dim-bottom" style={{ height: `${100 - crop.y - crop.height}%` }} />
+              <div
+                className="crop-dim crop-dim-left"
+                style={{
+                  top: `${crop.y}%`,
+                  bottom: `${100 - crop.y - crop.height}%`,
+                  width: `${crop.x}%`,
+                }}
+              />
+              <div
+                className="crop-box"
+                style={{
+                  left: `${crop.x}%`,
+                  top: `${crop.y}%`,
+                  width: `${crop.width}%`,
+                  height: `${crop.height}%`,
+                }}
+              >
+                {(['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const).map((handle) => (
+                  <span
+                    className={`crop-handle ${handle}`}
+                    key={handle}
+                    onPointerDown={(event) => {
+                      event.stopPropagation()
+                      updateCrop(event, handle)
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <footer>
@@ -1921,7 +1996,7 @@ function CropModal({
             type="button"
             onClick={() => {
               onReset()
-              setCrop({ x: 8, y: 8, width: 84, height: 84 })
+              setCrop(fullCrop)
             }}
           >
             {languageText(text, 'Quitar recorte', 'Remove crop')}
@@ -1930,7 +2005,7 @@ function CropModal({
             <button className="secondary-button" type="button" onClick={onClose}>
               {languageText(text, 'Cancelar', 'Cancel')}
             </button>
-            <button className="primary-button" type="button" onClick={() => onSave(crop)}>
+            <button className="primary-button" type="button" onClick={saveCrop}>
               {languageText(text, 'Guardar recorte', 'Save crop')}
             </button>
           </div>
@@ -2241,9 +2316,9 @@ async function renderAdvancedScannedImage(canvas: HTMLCanvasElement) {
   const openCvCanvas = await cropDocumentWithOpenCv(canvas)
   const scannedCanvas = openCvCanvas ?? cropDocumentPerspective(canvas) ?? cropDocument(canvas)
   const refinedCanvas = openCvCanvas ? scannedCanvas : cropDocument(straightenDocument(scannedCanvas))
-  const tightenedCanvas = cropDocument(refinedCanvas)
+  const tightenedCanvas = openCvCanvas ? refinedCanvas : cropDocument(refinedCanvas)
   const enhancedCanvas = applySmartScannerEffect(tightenedCanvas)
-  return cropDocument(enhancedCanvas)
+  return openCvCanvas ? enhancedCanvas : cropDocument(enhancedCanvas)
 }
 
 let openCvPromise: Promise<CvRuntime> | null = null
@@ -2502,7 +2577,7 @@ async function cropDocumentWithOpenCv(canvas: HTMLCanvasElement) {
       },
       canvas.width,
       canvas.height,
-      Math.round(Math.min(canvas.width, canvas.height) * 0.006),
+      Math.round(Math.min(canvas.width, canvas.height) * 0.018),
     )
 
     const output = warpQuadWithOpenCv(cv, canvas, sourceQuad)

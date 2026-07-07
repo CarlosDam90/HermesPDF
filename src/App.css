@@ -647,6 +647,7 @@ button:disabled {
 
 .crop-modal {
   display: grid;
+  justify-items: center;
   width: min(920px, 100%);
   max-height: min(840px, calc(100svh - 40px));
   overflow: hidden;
@@ -659,6 +660,7 @@ button:disabled {
 .crop-modal header,
 .crop-modal footer {
   display: flex;
+  width: 100%;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -694,26 +696,31 @@ button:disabled {
 .crop-stage {
   position: relative;
   display: grid;
-  width: min(100%, 820px);
-  aspect-ratio: var(--crop-aspect, 4 / 3);
-  max-height: min(62svh, 560px);
-  margin: 18px;
+  max-width: calc(100% - 36px);
+  margin: 18px 0;
   touch-action: none;
   user-select: none;
   place-items: center;
   overflow: hidden;
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 8px;
-  background: #111827;
+  background: #f8fafc;
   cursor: move;
 }
 
-.crop-stage img {
-  width: 100%;
-  height: 100%;
+.crop-image {
   display: block;
-  object-fit: fill;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
   pointer-events: none;
+}
+
+.crop-layer {
+  position: absolute;
+  overflow: hidden;
 }
 
 .crop-dim {
@@ -2238,6 +2245,37 @@ button:disabled {
   .pdf-card .page-actions {
     grid-column: 1 / -1;
     justify-content: flex-end;
+  }
+
+  .modal-backdrop {
+    padding: 10px;
+  }
+
+  .crop-modal {
+    max-height: calc(100svh - 20px);
+  }
+
+  .crop-modal header,
+  .crop-modal footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .crop-modal footer div {
+    width: 100%;
+    flex-direction: column-reverse;
+  }
+
+  .crop-modal footer .primary-button,
+  .crop-modal footer .secondary-button {
+    width: 100%;
+  }
+
+  .crop-stage {
+    max-width: calc(100% - 20px);
+    margin: 10px 0;
   }
 }
 
