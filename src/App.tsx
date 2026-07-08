@@ -93,6 +93,22 @@ const localizedRouteAliases: Partial<Record<Language, Partial<Record<Tool, strin
     delete: '/delete-pdf-pages',
     watermark: '/watermark-pdf',
   },
+  fr: {
+    scanner: '/image-en-pdf',
+    merge: '/fusionner-pdf',
+    split: '/diviser-pdf',
+    rotate: '/pivoter-pdf',
+    delete: '/supprimer-pages-pdf',
+    watermark: '/filigrane-pdf',
+  },
+  pt: {
+    scanner: '/imagem-para-pdf',
+    merge: '/unir-pdf',
+    split: '/dividir-pdf',
+    rotate: '/rodar-pdf',
+    delete: '/remover-paginas-pdf',
+    watermark: '/marca-dagua-pdf',
+  },
 }
 
 const toolRoutes: Record<Tool, string> = {
@@ -4820,7 +4836,11 @@ function getToolFromPath(pathname: string): { language: Language; tool: Tool } {
     const defaultRoute = toolRoutes[tool]
     const localizedRoute = localizedRouteAliases[language]?.[tool]
 
-    if (pathWithoutLanguage === defaultRoute || pathWithoutLanguage === localizedRoute) {
+    if (
+      pathWithoutLanguage === defaultRoute ||
+      pathWithoutLanguage === localizedRoute ||
+      routeTools.get(pathWithoutLanguage) === tool
+    ) {
       return { language, tool }
     }
   }
