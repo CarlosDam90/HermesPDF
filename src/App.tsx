@@ -44,6 +44,7 @@ type PageImage = {
   file: File
   name: string
   previewUrl: string
+  cropPreviewUrl?: string
   rotation: number
   crop?: CropArea
 }
@@ -885,7 +886,10 @@ function App() {
   const removeImage = (id: string) => {
     setImages((current) => {
       const image = current.find((item) => item.id === id)
-      if (image) URL.revokeObjectURL(image.previewUrl)
+      if (image) {
+        URL.revokeObjectURL(image.previewUrl)
+        if (image.cropPreviewUrl) URL.revokeObjectURL(image.cropPreviewUrl)
+      }
       return current.filter((item) => item.id !== id)
     })
   }
@@ -900,7 +904,32 @@ function App() {
 
   const updateImageCrop = (id: string, crop?: CropArea) => {
     setImages((current) =>
-      current.map((image) => (image.id === id ? { ...image, crop } : image)),
+      current.map((image) => {
+        if (image.id !== id) return image
+        if (image.cropPreviewUrl) URL.revokeObjectURL(image.cropPreviewUrl)
+        return { ...image, crop, cropPreviewUrl: undefined }
+      }),
+    )
+  }
+
+  const saveImageCrop = async (id: string, crop: CropArea) => {
+    const image = images.find((item) => item.id === id)
+    if (!image) return
+
+    let cropPreviewUrl: string | undefined
+
+    try {
+      cropPreviewUrl = await createCroppedPreviewUrl(image.file, crop)
+    } catch {
+      cropPreviewUrl = undefined
+    }
+
+    setImages((current) =>
+      current.map((item) => {
+        if (item.id !== id) return item
+        if (item.cropPreviewUrl) URL.revokeObjectURL(item.cropPreviewUrl)
+        return { ...item, crop, cropPreviewUrl }
+      }),
     )
   }
 
@@ -937,7 +966,10 @@ function App() {
   }
 
   const resetAll = () => {
-    images.forEach((image) => URL.revokeObjectURL(image.previewUrl))
+    images.forEach((image) => {
+      URL.revokeObjectURL(image.previewUrl)
+      if (image.cropPreviewUrl) URL.revokeObjectURL(image.cropPreviewUrl)
+    })
     setImages([])
     setPdfFiles([])
     setPageSelection('1')
@@ -1338,7 +1370,7 @@ function App() {
           text={text}
           onClose={() => setEditingCropId(null)}
           onSave={(crop) => {
-            updateImageCrop(editingCropId, crop)
+            void saveImageCrop(editingCropId, crop)
             setEditingCropId(null)
           }}
           onReset={() => updateImageCrop(editingCropId, undefined)}
@@ -2504,7 +2536,7 @@ function ScannerWorkspace({
           <article className="page-card" key={image.id}>
             <div className="page-preview">
               <img
-                src={image.previewUrl}
+                src={image.cropPreviewUrl ?? image.previewUrl}
                 alt={image.name}
                 style={{
                   transform: `rotate(${image.rotation}deg)`,
@@ -3020,6 +3052,20 @@ async function renderImageToJpeg(image: PageImage) {
     bytes,
     width: outputCanvas.width,
     height: outputCanvas.height,
+  }
+}
+
+async function createCroppedPreviewUrl(file: File, crop: CropArea) {
+  const bitmap = await createImageBitmap(file)
+
+  try {
+    const sourceCanvas = drawImageToCanvas(bitmap)
+    const croppedCanvas = applyManualCrop(sourceCanvas, crop)
+    const blob = await canvasToBlob(croppedCanvas, 'image/jpeg', 0.9)
+
+    return URL.createObjectURL(blob)
+  } finally {
+    bitmap.close()
   }
 }
 
@@ -4612,18 +4658,22 @@ function cloneCanvas(canvas: HTMLCanvasElement) {
 
 function canvasToJpegBytes(canvas: HTMLCanvasElement) {
   return new Promise<ArrayBuffer>((resolve, reject) => {
-    canvas.toBlob(
-      async (blob) => {
-        if (!blob) {
-          reject(new Error('No se pudo convertir la imagen.'))
-          return
-        }
+    canvasToBlob(canvas, 'image/jpeg', 0.9)
+      .then(async (blob) => resolve(await blob.arrayBuffer()))
+      .catch(reject)
+  })
+}
 
-        resolve(await blob.arrayBuffer())
-      },
-      'image/jpeg',
-      0.9,
-    )
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error('No se pudo convertir la imagen.'))
+        return
+      }
+
+      resolve(blob)
+    }, type, quality)
   })
 }
 
