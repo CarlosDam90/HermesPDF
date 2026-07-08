@@ -1712,10 +1712,11 @@ function SiteFooter({
       </div>
 
       <div className="footer-social" aria-label="Redes sociales">
-        <span>in</span>
-        <span>f</span>
-        <span>yt</span>
-        <span>X</span>
+        <SocialLogo network="instagram" label="Instagram" />
+        <SocialLogo network="facebook" label="Facebook" />
+        <SocialLogo network="youtube" label="YouTube" />
+        <SocialLogo network="x" label="X" />
+        <SocialLogo network="linkedin" label="LinkedIn" />
       </div>
 
       <div className="footer-bottom">
@@ -1731,6 +1732,47 @@ function SiteFooter({
         </div>
       </div>
     </footer>
+  )
+}
+
+function SocialLogo({
+  network,
+  label,
+}: {
+  network: 'instagram' | 'facebook' | 'youtube' | 'x' | 'linkedin'
+  label: string
+}) {
+  return (
+    <span className="social-logo" aria-label={label} title={label}>
+      {network === 'instagram' && (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5.2" fill="none" />
+          <circle cx="12" cy="12" r="4.1" fill="none" />
+          <circle cx="17.2" cy="6.8" r="1.2" fill="none" />
+        </svg>
+      )}
+      {network === 'facebook' && (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14.2 8.1h2.7V4.2c-.5-.1-2-.2-3.7-.2-3.7 0-6.2 2.2-6.2 6.3v3.5H3v4.4h4v10h4.8v-10h4l.7-4.4h-4.7v-3c0-1.3.4-2.7 2.4-2.7Z" transform="scale(.86) translate(2 1)" />
+        </svg>
+      )}
+      {network === 'youtube' && (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 7.2a3 3 0 0 0-2.1-2.1C17 4.6 12 4.6 12 4.6s-5 0-6.9.5A3 3 0 0 0 3 7.2 31 31 0 0 0 2.5 12 31 31 0 0 0 3 16.8a3 3 0 0 0 2.1 2.1c1.9.5 6.9.5 6.9.5s5 0 6.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8Z" />
+          <path d="m10 15.3 5.2-3.3L10 8.7v6.6Z" className="social-logo-cutout" />
+        </svg>
+      )}
+      {network === 'x' && (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14.1 10.2 21.7 2h-1.8l-6.6 7.1L8 2H2l8 10.7L2 22h1.8l7-8 5.8 8H22l-7.9-11.8Zm-2.5 2.9-.8-1.1L4.4 3.4h2.7l5.2 7 .8 1.1 6.8 9.1h-2.7l-5.6-7.5Z" />
+        </svg>
+      )}
+      {network === 'linkedin' && (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5.1 8.7H1.6V22h3.5V8.7ZM3.3 2A2 2 0 0 0 1.2 4a2 2 0 0 0 2.1 2 2 2 0 0 0 2.1-2A2 2 0 0 0 3.3 2Zm19.5 12.3c0-4-2.1-5.9-5-5.9a4.3 4.3 0 0 0-3.9 2.1h-.1V8.7h-3.4V22h3.5v-6.6c0-1.7.3-3.4 2.5-3.4 2.1 0 2.1 2 2.1 3.5V22h3.5v-7.7Z" />
+        </svg>
+      )}
+    </span>
   )
 }
 

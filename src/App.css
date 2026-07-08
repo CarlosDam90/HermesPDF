@@ -849,14 +849,42 @@ button:disabled {
   padding: 18px 0;
 }
 
-.footer-social span {
-  display: inline-flex;
-  min-width: 22px;
-  justify-content: center;
+.social-logo {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 999px;
+  background: #ffffff;
   color: #1f2937;
-  font-size: 1rem;
-  font-weight: 900;
-  text-transform: uppercase;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.social-logo:hover {
+  border-color: rgba(215, 163, 66, 0.55);
+  color: #b9801f;
+  transform: translateY(-1px);
+}
+
+.social-logo svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.social-logo path {
+  stroke: none;
+}
+
+.social-logo-cutout {
+  fill: #ffffff;
 }
 
 .footer-bottom {
