@@ -63,6 +63,8 @@ type CropArea = {
   height: number
 }
 
+const FULL_CROP: CropArea = { x: 0, y: 0, width: 100, height: 100 }
+
 const A4 = {
   width: 595.28,
   height: 841.89,
@@ -1317,6 +1319,8 @@ function App() {
           onOpenPrivacy={() => openInfoPanel('privacy')}
         />
 
+        <AllToolsShowcase language={language} onSelectTool={selectTool} />
+
         <SiteFooter
           language={language}
           onOpenInfo={openInfoPanel}
@@ -1353,6 +1357,235 @@ function App() {
     setStatus('')
     navigate(getLocalizedPath(language, tool))
   }
+}
+
+type ToolShowcaseItem = {
+  label: string
+  color: string
+  icon: string
+  tool?: Tool
+  muted?: boolean
+}
+
+type ToolShowcaseColumn = {
+  title: string
+  groups: {
+    title?: string
+    items: ToolShowcaseItem[]
+  }[]
+}
+
+function AllToolsShowcase({
+  language,
+  onSelectTool,
+}: {
+  language: Language
+  onSelectTool: (tool: Tool) => void
+}) {
+  const isSpanish = language === 'es'
+  const title = isSpanish ? 'Todas las herramientas para tus PDF' : 'All tools for your PDFs'
+  const subtitle = isSpanish
+    ? 'Accesos rapidos a las herramientas disponibles y a las proximas funciones de SpartaPDF.'
+    : 'Quick access to available tools and upcoming SpartaPDF features.'
+  const comingSoon = isSpanish ? 'Proximamente' : 'Coming soon'
+  const columns: ToolShowcaseColumn[] = [
+    {
+      title: isSpanish ? 'Convertir' : 'Convert',
+      groups: [
+        {
+          items: [
+            { label: isSpanish ? 'Imagen a PDF' : 'Image to PDF', color: '#ef4444', icon: 'IMG', tool: 'scanner' },
+            { label: isSpanish ? 'Convertir a PDF' : 'Convert to PDF', color: '#ef4444', icon: 'PDF', tool: 'scanner' },
+            { label: isSpanish ? 'Conversor de PDF' : 'PDF converter', color: '#ef4444', icon: 'PDF', muted: true },
+          ],
+        },
+        {
+          title: 'Microsoft Office',
+          items: [
+            { label: isSpanish ? 'PDF a Word' : 'PDF to Word', color: '#3b82f6', icon: 'W', muted: true },
+            { label: isSpanish ? 'PDF a PowerPoint' : 'PDF to PowerPoint', color: '#f97316', icon: 'P', muted: true },
+            { label: isSpanish ? 'PDF a Excel' : 'PDF to Excel', color: '#22c55e', icon: 'X', muted: true },
+          ],
+        },
+        {
+          items: [
+            { label: isSpanish ? 'PDF a JPG' : 'PDF to JPG', color: '#f43f5e', icon: 'JPG', muted: true },
+            { label: isSpanish ? 'PDF a TXT' : 'PDF to TXT', color: '#ef4444', icon: 'TXT', muted: true },
+            { label: isSpanish ? 'PDF a HTML' : 'PDF to HTML', color: '#ef4444', icon: 'HTML', muted: true },
+          ],
+        },
+      ],
+    },
+    {
+      title: isSpanish ? 'Organizar' : 'Organize',
+      groups: [
+        {
+          items: [
+            { label: isSpanish ? 'Unir PDF' : 'Merge PDF', color: '#7c3aed', icon: 'M', tool: 'merge' },
+            { label: isSpanish ? 'Dividir PDF' : 'Split PDF', color: '#7c3aed', icon: 'S', tool: 'split' },
+            { label: isSpanish ? 'Eliminar paginas' : 'Delete pages', color: '#7c3aed', icon: 'D', tool: 'delete' },
+            { label: isSpanish ? 'Extraer paginas' : 'Extract pages', color: '#7c3aed', icon: 'E', tool: 'split' },
+            { label: isSpanish ? 'Rotar PDF' : 'Rotate PDF', color: '#7c3aed', icon: 'R', tool: 'rotate' },
+            { label: isSpanish ? 'Ordenar PDF' : 'Reorder PDF', color: '#7c3aed', icon: 'O', muted: true },
+            { label: isSpanish ? 'Organizar paginas' : 'Organize pages', color: '#7c3aed', icon: 'P', muted: true },
+          ],
+        },
+      ],
+    },
+    {
+      title: isSpanish ? 'Seguridad' : 'Security',
+      groups: [
+        {
+          items: [
+            { label: isSpanish ? 'Proteger PDF' : 'Protect PDF', color: '#f59e0b', icon: 'L', muted: true },
+            { label: isSpanish ? 'Desbloquear PDF' : 'Unlock PDF', color: '#f59e0b', icon: 'U', muted: true },
+            { label: isSpanish ? 'Cifrar PDF' : 'Encrypt PDF', color: '#f59e0b', icon: 'C', muted: true },
+            { label: isSpanish ? 'Descifrar PDF' : 'Decrypt PDF', color: '#f59e0b', icon: 'D', muted: true },
+            { label: isSpanish ? 'Verificar firma' : 'Verify signature', color: '#f59e0b', icon: 'V', muted: true },
+            { label: isSpanish ? 'Borrar datos' : 'Remove data', color: '#f59e0b', icon: 'B', muted: true },
+          ],
+        },
+      ],
+    },
+    {
+      title: isSpanish ? 'Editar' : 'Edit',
+      groups: [
+        {
+          items: [
+            { label: isSpanish ? 'Editar PDF' : 'Edit PDF', color: '#14b8a6', icon: 'E', muted: true },
+            { label: isSpanish ? 'Anadir texto' : 'Add text', color: '#14b8a6', icon: 'T', muted: true },
+            { label: isSpanish ? 'Anadir imagen' : 'Add image', color: '#14b8a6', icon: 'I', muted: true },
+            { label: isSpanish ? 'Anadir pagina' : 'Add page', color: '#14b8a6', icon: 'P', muted: true },
+            { label: isSpanish ? 'Eliminar contenido' : 'Remove content', color: '#14b8a6', icon: 'X', muted: true },
+            { label: isSpanish ? 'Resaltar texto' : 'Highlight text', color: '#14b8a6', icon: 'H', muted: true },
+            { label: isSpanish ? 'Numeros de pagina' : 'Page numbers', color: '#14b8a6', icon: '#', muted: true },
+            { label: isSpanish ? 'Marca de agua' : 'Watermark', color: '#14b8a6', icon: 'W', tool: 'watermark' },
+            { label: isSpanish ? 'Comparar archivos PDF' : 'Compare PDF files', color: '#14b8a6', icon: 'C', muted: true },
+          ],
+        },
+      ],
+    },
+    {
+      title: isSpanish ? 'Convertir desde PDF' : 'Convert from PDF',
+      groups: [
+        {
+          items: [
+            { label: isSpanish ? 'PDF a Word' : 'PDF to Word', color: '#3b82f6', icon: 'W', muted: true },
+            { label: isSpanish ? 'PDF a Excel' : 'PDF to Excel', color: '#22c55e', icon: 'X', muted: true },
+            { label: isSpanish ? 'PDF a PowerPoint' : 'PDF to PowerPoint', color: '#f97316', icon: 'P', muted: true },
+            { label: isSpanish ? 'PDF a JPG' : 'PDF to JPG', color: '#3b82f6', icon: 'JPG', muted: true },
+            { label: isSpanish ? 'PDF a PNG' : 'PDF to PNG', color: '#3b82f6', icon: 'PNG', muted: true },
+            { label: isSpanish ? 'PDF a HTML' : 'PDF to HTML', color: '#3b82f6', icon: 'HTML', muted: true },
+            { label: isSpanish ? 'PDF a TXT' : 'PDF to TXT', color: '#3b82f6', icon: 'TXT', muted: true },
+          ],
+        },
+      ],
+    },
+    {
+      title: isSpanish ? 'Convertir a PDF' : 'Convert to PDF',
+      groups: [
+        {
+          items: [
+            { label: isSpanish ? 'Word a PDF' : 'Word to PDF', color: '#22c55e', icon: 'W', muted: true },
+            { label: isSpanish ? 'Excel a PDF' : 'Excel to PDF', color: '#22c55e', icon: 'X', muted: true },
+            { label: isSpanish ? 'PowerPoint a PDF' : 'PowerPoint to PDF', color: '#f97316', icon: 'P', muted: true },
+            { label: isSpanish ? 'JPG a PDF' : 'JPG to PDF', color: '#eab308', icon: 'JPG', tool: 'scanner' },
+            { label: isSpanish ? 'PNG a PDF' : 'PNG to PDF', color: '#84cc16', icon: 'PNG', tool: 'scanner' },
+            { label: isSpanish ? 'HTML a PDF' : 'HTML to PDF', color: '#0ea5e9', icon: 'HTML', muted: true },
+            { label: isSpanish ? 'TXT a PDF' : 'TXT to PDF', color: '#3b82f6', icon: 'TXT', muted: true },
+            { label: isSpanish ? 'RTF a PDF' : 'RTF to PDF', color: '#3b82f6', icon: 'RTF', muted: true },
+            { label: isSpanish ? 'EPUB a PDF' : 'EPUB to PDF', color: '#22c55e', icon: 'EPUB', muted: true },
+          ],
+        },
+      ],
+    },
+    {
+      title: isSpanish ? 'Firmar' : 'Sign',
+      groups: [
+        {
+          items: [
+            { label: isSpanish ? 'Firmar PDF' : 'Sign PDF', color: '#ef4444', icon: 'F', muted: true },
+            { label: isSpanish ? 'Solicitar firma' : 'Request signature', color: '#ef4444', icon: 'S', muted: true },
+            { label: isSpanish ? 'Verificar firma' : 'Verify signature', color: '#ef4444', icon: 'V', muted: true },
+            { label: isSpanish ? 'Certificado digital' : 'Digital certificate', color: '#ef4444', icon: 'C', muted: true },
+            { label: isSpanish ? 'Firma electronica' : 'Electronic signature', color: '#ef4444', icon: 'E', muted: true },
+          ],
+        },
+      ],
+    },
+    {
+      title: isSpanish ? 'Utilidades' : 'Utilities',
+      groups: [
+        {
+          items: [
+            { label: isSpanish ? 'Recortar PDF' : 'Crop PDF', color: '#64748b', icon: 'R', muted: true },
+            { label: isSpanish ? 'Medir PDF' : 'Measure PDF', color: '#64748b', icon: 'M', muted: true },
+            { label: isSpanish ? 'Imprimir PDF' : 'Print PDF', color: '#64748b', icon: 'P', muted: true },
+            { label: isSpanish ? 'Informacion PDF' : 'PDF information', color: '#64748b', icon: 'I', muted: true },
+            { label: isSpanish ? 'Optimizar PDF' : 'Optimize PDF', color: '#64748b', icon: 'O', muted: true },
+            { label: isSpanish ? 'Crear PDF/A' : 'Create PDF/A', color: '#64748b', icon: 'A', muted: true },
+          ],
+        },
+      ],
+    },
+  ]
+
+  return (
+    <section className="all-tools-panel" aria-labelledby="all-tools-title">
+      <div className="all-tools-border" aria-hidden="true" />
+      <div className="all-tools-heading">
+        <button
+          className="all-tools-brand"
+          type="button"
+          aria-label="SpartaPDF - Inicio"
+          onClick={() => onSelectTool('scanner')}
+        >
+          <img src="/sparta-mark.png" alt="" aria-hidden="true" />
+          <span>
+            Sparta<strong>PDF</strong>
+          </span>
+        </button>
+        <div>
+          <h2 id="all-tools-title">{title}</h2>
+          <p>{subtitle}</p>
+        </div>
+      </div>
+
+      <div className="all-tools-grid">
+        {columns.map((column) => (
+          <section className="all-tools-column" key={column.title}>
+            <h3>{column.title}</h3>
+            {column.groups.map((group, groupIndex) => (
+              <div className="all-tools-group" key={`${column.title}-${group.title ?? groupIndex}`}>
+                {group.title && <p>{group.title}</p>}
+                {group.items.map((item) => {
+                  const content = (
+                    <>
+                      <span className="all-tools-icon" style={{ '--tool-color': item.color } as CSSProperties}>
+                        {item.icon}
+                      </span>
+                      <span>{item.label}</span>
+                      {item.muted && <small>{comingSoon}</small>}
+                    </>
+                  )
+
+                  return item.tool && !item.muted ? (
+                    <button type="button" key={item.label} onClick={() => onSelectTool(item.tool!)}>
+                      {content}
+                    </button>
+                  ) : (
+                    <div className="is-muted" key={item.label}>
+                      {content}
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
+          </section>
+        ))}
+      </div>
+    </section>
+  )
 }
 
 function SiteFooter({
@@ -2278,8 +2511,7 @@ function CropModal({
   onSave: (crop: CropArea) => void
   onReset: () => void
 }) {
-  const fullCrop = { x: 0, y: 0, width: 100, height: 100 }
-  const [crop, setCrop] = useState<CropArea>(fullCrop)
+  const [crop, setCrop] = useState<CropArea>(FULL_CROP)
   const [naturalImageSize, setNaturalImageSize] = useState<{ width: number; height: number } | null>(null)
   const [viewportSize, setViewportSize] = useState(() => ({
     width: window.innerWidth,
@@ -2302,7 +2534,7 @@ function CropModal({
   }, [])
 
   useEffect(() => {
-    setCrop(image?.crop ?? fullCrop)
+    setCrop(image?.crop ?? FULL_CROP)
     setNaturalImageSize(null)
   }, [image?.id, image?.crop])
 
@@ -2487,7 +2719,7 @@ function CropModal({
             type="button"
             onClick={() => {
               onReset()
-              setCrop(fullCrop)
+              setCrop(FULL_CROP)
             }}
           >
             {languageText(text, 'Quitar recorte', 'Remove crop')}
