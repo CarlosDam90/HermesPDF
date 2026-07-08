@@ -862,6 +862,7 @@ button:disabled {
     border-color 160ms ease,
     color 160ms ease,
     transform 160ms ease;
+  text-decoration: none;
 }
 
 .social-logo:hover {

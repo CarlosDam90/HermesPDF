@@ -1712,7 +1712,7 @@ function SiteFooter({
       </div>
 
       <div className="footer-social" aria-label="Redes sociales">
-        <SocialLogo network="instagram" label="Instagram" />
+        <SocialLogo network="instagram" label="Instagram" href="https://www.instagram.com/SPARTAPDF/" />
         <SocialLogo network="facebook" label="Facebook" />
         <SocialLogo network="youtube" label="YouTube" />
         <SocialLogo network="x" label="X" />
@@ -1738,12 +1738,14 @@ function SiteFooter({
 function SocialLogo({
   network,
   label,
+  href,
 }: {
   network: 'instagram' | 'facebook' | 'youtube' | 'x' | 'linkedin'
   label: string
+  href?: string
 }) {
-  return (
-    <span className="social-logo" aria-label={label} title={label}>
+  const content = (
+    <>
       {network === 'instagram' && (
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5.2" fill="none" />
@@ -1772,6 +1774,20 @@ function SocialLogo({
           <path d="M5.1 8.7H1.6V22h3.5V8.7ZM3.3 2A2 2 0 0 0 1.2 4a2 2 0 0 0 2.1 2 2 2 0 0 0 2.1-2A2 2 0 0 0 3.3 2Zm19.5 12.3c0-4-2.1-5.9-5-5.9a4.3 4.3 0 0 0-3.9 2.1h-.1V8.7h-3.4V22h3.5v-6.6c0-1.7.3-3.4 2.5-3.4 2.1 0 2.1 2 2.1 3.5V22h3.5v-7.7Z" />
         </svg>
       )}
+    </>
+  )
+
+  if (href) {
+    return (
+      <a className="social-logo" href={href} target="_blank" rel="noreferrer" aria-label={label} title={label}>
+        {content}
+      </a>
+    )
+  }
+
+  return (
+    <span className="social-logo" aria-label={label} title={label}>
+      {content}
     </span>
   )
 }
