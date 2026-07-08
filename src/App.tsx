@@ -2280,6 +2280,7 @@ function CropModal({
 }) {
   const fullCrop = { x: 0, y: 0, width: 100, height: 100 }
   const [crop, setCrop] = useState<CropArea>(fullCrop)
+  const [naturalImageSize, setNaturalImageSize] = useState<{ width: number; height: number } | null>(null)
   const [viewportSize, setViewportSize] = useState(() => ({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -2301,8 +2302,9 @@ function CropModal({
   }, [])
 
   useEffect(() => {
-    setCrop(fullCrop)
-  }, [image?.id])
+    setCrop(image?.crop ?? fullCrop)
+    setNaturalImageSize(null)
+  }, [image?.id, image?.crop])
 
   const updateImageBounds = () => {
     const stage = stageRef.current
@@ -2344,8 +2346,14 @@ function CropModal({
   const maxStageWidth = Math.min(540, Math.max(260, viewportSize.width - 76))
   const maxStageHeightRatio = viewportSize.width <= 760 ? 0.54 : 0.62
   const maxStageHeight = Math.min(640, Math.max(280, viewportSize.height * maxStageHeightRatio))
-  const stageWidth = Math.min(maxStageWidth, maxStageHeight * 0.72)
-  const stageHeight = Math.min(maxStageHeight, stageWidth / 0.72)
+  const imageAspect = naturalImageSize
+    ? naturalImageSize.width / naturalImageSize.height
+    : 0.72
+  const stageAspectLimit = maxStageWidth / maxStageHeight
+  const stageWidth =
+    imageAspect >= stageAspectLimit ? maxStageWidth : Math.max(220, maxStageHeight * imageAspect)
+  const stageHeight =
+    imageAspect >= stageAspectLimit ? Math.max(220, maxStageWidth / imageAspect) : maxStageHeight
 
   const updateCrop = (
     event: PointerEvent<HTMLElement>,
@@ -2378,7 +2386,11 @@ function CropModal({
     window.addEventListener('pointerup', onPointerUp)
   }
 
-  const handleImageLoad = (_event: SyntheticEvent<HTMLImageElement>) => {
+  const handleImageLoad = (event: SyntheticEvent<HTMLImageElement>) => {
+    setNaturalImageSize({
+      width: event.currentTarget.naturalWidth,
+      height: event.currentTarget.naturalHeight,
+    })
     requestAnimationFrame(updateImageBounds)
   }
 
