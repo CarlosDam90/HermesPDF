@@ -553,7 +553,9 @@ button:disabled {
   border: 0;
   border-radius: 8px;
   padding: 42px 28px 48px;
-  background-image: url('/all-tools-background.png');
+  background-image:
+    linear-gradient(rgba(255, 253, 248, 0.42), rgba(255, 253, 248, 0.42)),
+    url('/all-tools-background.png');
   background-position: center;
   background-repeat: no-repeat;
   background-size: 100% 100%;
