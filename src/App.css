@@ -2430,6 +2430,11 @@ button:disabled {
 
   .all-tools-panel {
     padding: 24px 18px 26px;
+    background-image:
+      linear-gradient(rgba(255, 253, 248, 0.56), rgba(255, 253, 248, 0.56)),
+      url('/all-tools-background.png');
+    background-position: center;
+    background-size: cover;
   }
 
   .all-tools-heading {
@@ -2609,6 +2614,13 @@ button:disabled {
 }
 
 @media (max-width: 640px) {
+  .all-tools-panel {
+    background-image:
+      linear-gradient(rgba(255, 253, 248, 0.68), rgba(255, 253, 248, 0.68)),
+      url('/all-tools-background.png');
+    background-position: 58% center;
+  }
+
   .all-tools-grid {
     grid-template-columns: 1fr;
   }
