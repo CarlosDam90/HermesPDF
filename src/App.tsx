@@ -753,6 +753,144 @@ const uiText = {
     pageDescription:
       'SpartaPDF lets you convert images to PDF, merge, split, rotate, delete pages and add watermarks for free from your browser.',
   },
+  fr: {
+    activeTool: 'Outil actif',
+    localPrivate: 'Local et prive',
+    reset: 'Reinitialiser',
+    openMenu: 'Ouvrir le menu',
+    about: 'Qui sommes-nous',
+    contact: 'Contact',
+    privacy: 'Confidentialite',
+    help: 'Aide',
+    downloadPdf: 'Telecharger le PDF',
+    generating: 'Generation...',
+    processPdf: 'Creer le PDF',
+    processing: 'Traitement...',
+    scannerLoading: 'Creation du PDF depuis les images...',
+    mergeLoading: 'Fusion des PDF...',
+    splitLoading: 'Extraction des pages...',
+    rotateLoading: 'Rotation du PDF...',
+    deleteLoading: 'Suppression des pages...',
+    watermarkLoading: 'Ajout du filigrane...',
+    success: 'Fichier cree correctement.',
+    error: 'Impossible de creer le fichier.',
+    readingPdfs: 'Lecture des PDF...',
+    pdfsLoaded: 'PDF charges.',
+    noValidPdfs: 'Aucun PDF valide charge.',
+    scanPreparing: 'Preparation de votre PDF localement',
+    scannerKicker: 'Rapide. Simple. Puissant.',
+    scannerTitleA: 'Convertissez des images en',
+    scannerTitleB: 'en quelques secondes',
+    scannerText:
+      'Creez des documents PDF professionnels depuis vos images tout en gardant vos fichiers prives dans votre navigateur.',
+    uploadImages: 'Deposez vos images ici',
+    clickSelect: 'ou cliquez pour selectionner',
+    chooseExplorer: 'Choisir depuis l explorateur',
+    smartScan: 'Conversion directe',
+    smartScanText: 'Convertissez vos images en PDF sans envoyer de fichiers aux serveurs.',
+    localTitle: '100% local',
+    localText: 'Vos fichiers ne sont envoyes a aucun serveur.',
+    freeTitle: 'Gratuit et sans limites',
+    freeText: 'Sans inscription, sans filigrane obligatoire.',
+    pdfLocalTool: 'Outil PDF local',
+    withoutUpload: 'sans envoyer de fichiers',
+    runsBrowser: 'Tout s execute directement dans votre navigateur.',
+    privateTitle: 'Prive',
+    privateText: 'Le PDF est traite sur votre appareil.',
+    fastTitle: 'Rapide',
+    fastText: 'Sans file d attente, sans serveur et sans attente inutile.',
+    uploadPdf: 'Deposez votre PDF ici',
+    page: 'Page',
+    pages: 'pages',
+    pdfPages: 'pages',
+    privacyFirst: 'Confidentialite d abord',
+    browserFilesTitle: 'Vos fichiers restent dans votre navigateur',
+    browserFilesText:
+      'SpartaPDF traite les images et les PDF localement. Vous n avez pas besoin de compte ni d envoyer vos documents a un serveur.',
+    viewPrivacy: 'Voir la confidentialite',
+    stepOneTitle: 'Ajoutez vos fichiers',
+    stepOneText: 'Deposez des images ou des PDF dans la zone de l outil dont vous avez besoin.',
+    stepTwoTitle: 'Ajustez le resultat',
+    stepTwoText: 'Organisez les pages, faites pivoter les images ou choisissez des plages selon le cas.',
+    stepThreeTitle: 'Telechargez instantanement',
+    stepThreeText: 'Creez le fichier final et telechargez-le directement depuis votre appareil.',
+    seoKicker: 'Outils PDF gratuits',
+    seoTitle: 'Convertir, fusionner et modifier des PDF en ligne',
+    seoText:
+      'Utilisez SpartaPDF pour travailler avec des documents PDF dans le navigateur: convertir des images en PDF, fusionner des fichiers, diviser des documents, pivoter des pages, supprimer des feuilles et ajouter des filigranes sans installer de logiciel.',
+    pageTitle: 'SpartaPDF | Convertir, fusionner et modifier des PDF gratuitement',
+    pageDescription:
+      'SpartaPDF vous permet de convertir des images en PDF, fusionner, diviser, pivoter, supprimer des pages et ajouter des filigranes gratuitement depuis votre navigateur.',
+  },
+  pt: {
+    activeTool: 'Ferramenta ativa',
+    localPrivate: 'Local e privado',
+    reset: 'Reiniciar',
+    openMenu: 'Abrir menu',
+    about: 'Quem somos',
+    contact: 'Contato',
+    privacy: 'Privacidade',
+    help: 'Ajuda',
+    downloadPdf: 'Baixar PDF',
+    generating: 'Gerando...',
+    processPdf: 'Criar PDF',
+    processing: 'Processando...',
+    scannerLoading: 'Criando PDF a partir de imagens...',
+    mergeLoading: 'Unindo PDFs...',
+    splitLoading: 'Extraindo paginas...',
+    rotateLoading: 'Rodando PDF...',
+    deleteLoading: 'Eliminando paginas...',
+    watermarkLoading: 'Adicionando marca d agua...',
+    success: 'Arquivo criado corretamente.',
+    error: 'Nao foi possivel criar o arquivo.',
+    readingPdfs: 'Lendo PDFs...',
+    pdfsLoaded: 'PDFs carregados.',
+    noValidPdfs: 'Nenhum PDF valido foi carregado.',
+    scanPreparing: 'Preparando seu PDF localmente',
+    scannerKicker: 'Rapido. Simples. Poderoso.',
+    scannerTitleA: 'Converta imagens em',
+    scannerTitleB: 'em segundos',
+    scannerText:
+      'Crie documentos PDF profissionais a partir das suas imagens mantendo os arquivos privados no navegador.',
+    uploadImages: 'Arraste suas imagens aqui',
+    clickSelect: 'ou clique para selecionar',
+    chooseExplorer: 'Escolher no explorador',
+    smartScan: 'Conversao direta',
+    smartScanText: 'Converta suas imagens para PDF sem enviar arquivos para servidores.',
+    localTitle: '100% local',
+    localText: 'Seus arquivos nao sao enviados para nenhum servidor.',
+    freeTitle: 'Gratis e sem limites',
+    freeText: 'Sem cadastro, sem marcas d agua obrigatorias.',
+    pdfLocalTool: 'Ferramenta PDF local',
+    withoutUpload: 'sem enviar arquivos',
+    runsBrowser: 'Tudo roda diretamente no seu navegador.',
+    privateTitle: 'Privado',
+    privateText: 'O PDF e processado no seu dispositivo.',
+    fastTitle: 'Rapido',
+    fastText: 'Sem filas, sem servidor e sem esperas desnecessarias.',
+    uploadPdf: 'Arraste seu PDF aqui',
+    page: 'Pagina',
+    pages: 'paginas',
+    pdfPages: 'paginas',
+    privacyFirst: 'Privacidade em primeiro lugar',
+    browserFilesTitle: 'Seus arquivos ficam no navegador',
+    browserFilesText:
+      'SpartaPDF processa imagens e PDFs localmente. Voce nao precisa criar conta nem enviar documentos para um servidor.',
+    viewPrivacy: 'Ver privacidade',
+    stepOneTitle: 'Envie seus arquivos',
+    stepOneText: 'Arraste imagens ou PDFs para a area da ferramenta que voce precisa.',
+    stepTwoTitle: 'Ajuste o resultado',
+    stepTwoText: 'Ordene paginas, rode imagens ou escolha intervalos conforme o caso.',
+    stepThreeTitle: 'Baixe instantaneamente',
+    stepThreeText: 'Crie o arquivo final e baixe-o diretamente do seu dispositivo.',
+    seoKicker: 'Ferramentas PDF gratis',
+    seoTitle: 'Converter, unir e editar PDF online',
+    seoText:
+      'Use SpartaPDF para trabalhar com documentos PDF no navegador: converta imagens para PDF, una arquivos, divida documentos, rode paginas, elimine folhas e adicione marcas d agua sem instalar programas.',
+    pageTitle: 'SpartaPDF | Converter, unir e editar PDF gratis online',
+    pageDescription:
+      'SpartaPDF permite converter imagens para PDF, unir, dividir, rodar, eliminar paginas e adicionar marcas d agua gratis no navegador.',
+  },
 }
 
 type UiText = typeof uiText.es
@@ -869,7 +1007,8 @@ function App() {
           size: file.size,
         })
       } catch {
-        setStatus(language === 'es' ? `No se pudo leer ${file.name}` : `Could not read ${file.name}`)
+        const readErrorPrefix = languageText(text, 'No se pudo leer', 'Could not read')
+        setStatus(`${readErrorPrefix} ${file.name}`)
       }
     }
 
@@ -1088,9 +1227,7 @@ function App() {
       const pagesToKeep = source.getPageIndices().filter((index) => !selectedPages.has(index))
 
       if (pagesToKeep.length === 0) {
-        throw new Error(
-          language === 'es' ? 'No puedes eliminar todas las paginas.' : 'You cannot delete every page.',
-        )
+        throw new Error(languageText(text, 'No puedes eliminar todas las paginas.', 'You cannot delete every page.'))
       }
 
       const output = await PDFDocument.create()
@@ -1430,148 +1567,150 @@ function AllToolsShowcase({
   language: Language
   onSelectTool: (tool: Tool) => void
 }) {
-  const isSpanish = language === 'es'
-  const title = isSpanish ? 'Todas las herramientas para tus PDF' : 'All tools for your PDFs'
-  const subtitle = isSpanish
-    ? 'Accesos rapidos a las herramientas disponibles y a las proximas funciones de SpartaPDF.'
-    : 'Quick access to available tools and upcoming SpartaPDF features.'
-  const comingSoon = isSpanish ? 'Proximamente' : 'Coming soon'
+  const text = getUiText(language)
+  const t = (spanish: string, english: string) => languageText(text, spanish, english)
+  const title = t('Todas las herramientas para tus PDF', 'All tools for your PDFs')
+  const subtitle = t(
+    'Accesos rapidos a las herramientas disponibles y a las proximas funciones de SpartaPDF.',
+    'Quick access to available tools and upcoming SpartaPDF features.',
+  )
+  const comingSoon = t('Proximamente', 'Coming soon')
   const columns: ToolShowcaseColumn[] = [
     {
-      title: isSpanish ? 'Convertir' : 'Convert',
+      title: t('Convertir', 'Convert'),
       groups: [
         {
           items: [
-            { label: isSpanish ? 'Imagen a PDF' : 'Image to PDF', color: '#ef4444', icon: 'IMG', tool: 'scanner' },
-            { label: isSpanish ? 'Convertir a PDF' : 'Convert to PDF', color: '#ef4444', icon: 'PDF', tool: 'scanner' },
-            { label: isSpanish ? 'Conversor de PDF' : 'PDF converter', color: '#ef4444', icon: 'PDF', muted: true },
+            { label: t('Imagen a PDF', 'Image to PDF'), color: '#ef4444', icon: 'IMG', tool: 'scanner' },
+            { label: t('Convertir a PDF', 'Convert to PDF'), color: '#ef4444', icon: 'PDF', tool: 'scanner' },
+            { label: t('Conversor de PDF', 'PDF converter'), color: '#ef4444', icon: 'PDF', muted: true },
           ],
         },
         {
           title: 'Microsoft Office',
           items: [
-            { label: isSpanish ? 'PDF a Word' : 'PDF to Word', color: '#3b82f6', icon: 'W', muted: true },
-            { label: isSpanish ? 'PDF a PowerPoint' : 'PDF to PowerPoint', color: '#f97316', icon: 'P', muted: true },
-            { label: isSpanish ? 'PDF a Excel' : 'PDF to Excel', color: '#22c55e', icon: 'X', muted: true },
+            { label: t('PDF a Word', 'PDF to Word'), color: '#3b82f6', icon: 'W', muted: true },
+            { label: t('PDF a PowerPoint', 'PDF to PowerPoint'), color: '#f97316', icon: 'P', muted: true },
+            { label: t('PDF a Excel', 'PDF to Excel'), color: '#22c55e', icon: 'X', muted: true },
           ],
         },
         {
           items: [
-            { label: isSpanish ? 'PDF a JPG' : 'PDF to JPG', color: '#f43f5e', icon: 'JPG', muted: true },
-            { label: isSpanish ? 'PDF a TXT' : 'PDF to TXT', color: '#ef4444', icon: 'TXT', muted: true },
-            { label: isSpanish ? 'PDF a HTML' : 'PDF to HTML', color: '#ef4444', icon: 'HTML', muted: true },
-          ],
-        },
-      ],
-    },
-    {
-      title: isSpanish ? 'Organizar' : 'Organize',
-      groups: [
-        {
-          items: [
-            { label: isSpanish ? 'Unir PDF' : 'Merge PDF', color: '#7c3aed', icon: 'M', tool: 'merge' },
-            { label: isSpanish ? 'Dividir PDF' : 'Split PDF', color: '#7c3aed', icon: 'S', tool: 'split' },
-            { label: isSpanish ? 'Eliminar paginas' : 'Delete pages', color: '#7c3aed', icon: 'D', tool: 'delete' },
-            { label: isSpanish ? 'Extraer paginas' : 'Extract pages', color: '#7c3aed', icon: 'E', tool: 'split' },
-            { label: isSpanish ? 'Rotar PDF' : 'Rotate PDF', color: '#7c3aed', icon: 'R', tool: 'rotate' },
-            { label: isSpanish ? 'Ordenar PDF' : 'Reorder PDF', color: '#7c3aed', icon: 'O', muted: true },
-            { label: isSpanish ? 'Organizar paginas' : 'Organize pages', color: '#7c3aed', icon: 'P', muted: true },
+            { label: t('PDF a JPG', 'PDF to JPG'), color: '#f43f5e', icon: 'JPG', muted: true },
+            { label: t('PDF a TXT', 'PDF to TXT'), color: '#ef4444', icon: 'TXT', muted: true },
+            { label: t('PDF a HTML', 'PDF to HTML'), color: '#ef4444', icon: 'HTML', muted: true },
           ],
         },
       ],
     },
     {
-      title: isSpanish ? 'Seguridad' : 'Security',
+      title: t('Organizar', 'Organize'),
       groups: [
         {
           items: [
-            { label: isSpanish ? 'Proteger PDF' : 'Protect PDF', color: '#f59e0b', icon: 'L', muted: true },
-            { label: isSpanish ? 'Desbloquear PDF' : 'Unlock PDF', color: '#f59e0b', icon: 'U', muted: true },
-            { label: isSpanish ? 'Cifrar PDF' : 'Encrypt PDF', color: '#f59e0b', icon: 'C', muted: true },
-            { label: isSpanish ? 'Descifrar PDF' : 'Decrypt PDF', color: '#f59e0b', icon: 'D', muted: true },
-            { label: isSpanish ? 'Verificar firma' : 'Verify signature', color: '#f59e0b', icon: 'V', muted: true },
-            { label: isSpanish ? 'Borrar datos' : 'Remove data', color: '#f59e0b', icon: 'B', muted: true },
+            { label: t('Unir PDF', 'Merge PDF'), color: '#7c3aed', icon: 'M', tool: 'merge' },
+            { label: t('Dividir PDF', 'Split PDF'), color: '#7c3aed', icon: 'S', tool: 'split' },
+            { label: t('Eliminar paginas', 'Delete pages'), color: '#7c3aed', icon: 'D', tool: 'delete' },
+            { label: t('Extraer paginas', 'Extract pages'), color: '#7c3aed', icon: 'E', tool: 'split' },
+            { label: t('Rotar PDF', 'Rotate PDF'), color: '#7c3aed', icon: 'R', tool: 'rotate' },
+            { label: t('Ordenar PDF', 'Reorder PDF'), color: '#7c3aed', icon: 'O', muted: true },
+            { label: t('Organizar paginas', 'Organize pages'), color: '#7c3aed', icon: 'P', muted: true },
           ],
         },
       ],
     },
     {
-      title: isSpanish ? 'Editar' : 'Edit',
+      title: t('Seguridad', 'Security'),
       groups: [
         {
           items: [
-            { label: isSpanish ? 'Editar PDF' : 'Edit PDF', color: '#14b8a6', icon: 'E', muted: true },
-            { label: isSpanish ? 'Anadir texto' : 'Add text', color: '#14b8a6', icon: 'T', muted: true },
-            { label: isSpanish ? 'Anadir imagen' : 'Add image', color: '#14b8a6', icon: 'I', muted: true },
-            { label: isSpanish ? 'Anadir pagina' : 'Add page', color: '#14b8a6', icon: 'P', muted: true },
-            { label: isSpanish ? 'Eliminar contenido' : 'Remove content', color: '#14b8a6', icon: 'X', muted: true },
-            { label: isSpanish ? 'Resaltar texto' : 'Highlight text', color: '#14b8a6', icon: 'H', muted: true },
-            { label: isSpanish ? 'Numeros de pagina' : 'Page numbers', color: '#14b8a6', icon: '#', muted: true },
-            { label: isSpanish ? 'Marca de agua' : 'Watermark', color: '#14b8a6', icon: 'W', tool: 'watermark' },
-            { label: isSpanish ? 'Comparar archivos PDF' : 'Compare PDF files', color: '#14b8a6', icon: 'C', muted: true },
+            { label: t('Proteger PDF', 'Protect PDF'), color: '#f59e0b', icon: 'L', muted: true },
+            { label: t('Desbloquear PDF', 'Unlock PDF'), color: '#f59e0b', icon: 'U', muted: true },
+            { label: t('Cifrar PDF', 'Encrypt PDF'), color: '#f59e0b', icon: 'C', muted: true },
+            { label: t('Descifrar PDF', 'Decrypt PDF'), color: '#f59e0b', icon: 'D', muted: true },
+            { label: t('Verificar firma', 'Verify signature'), color: '#f59e0b', icon: 'V', muted: true },
+            { label: t('Borrar datos', 'Remove data'), color: '#f59e0b', icon: 'B', muted: true },
           ],
         },
       ],
     },
     {
-      title: isSpanish ? 'Convertir desde PDF' : 'Convert from PDF',
+      title: t('Editar', 'Edit'),
       groups: [
         {
           items: [
-            { label: isSpanish ? 'PDF a Word' : 'PDF to Word', color: '#3b82f6', icon: 'W', muted: true },
-            { label: isSpanish ? 'PDF a Excel' : 'PDF to Excel', color: '#22c55e', icon: 'X', muted: true },
-            { label: isSpanish ? 'PDF a PowerPoint' : 'PDF to PowerPoint', color: '#f97316', icon: 'P', muted: true },
-            { label: isSpanish ? 'PDF a JPG' : 'PDF to JPG', color: '#3b82f6', icon: 'JPG', muted: true },
-            { label: isSpanish ? 'PDF a PNG' : 'PDF to PNG', color: '#3b82f6', icon: 'PNG', muted: true },
-            { label: isSpanish ? 'PDF a HTML' : 'PDF to HTML', color: '#3b82f6', icon: 'HTML', muted: true },
-            { label: isSpanish ? 'PDF a TXT' : 'PDF to TXT', color: '#3b82f6', icon: 'TXT', muted: true },
+            { label: t('Editar PDF', 'Edit PDF'), color: '#14b8a6', icon: 'E', muted: true },
+            { label: t('Anadir texto', 'Add text'), color: '#14b8a6', icon: 'T', muted: true },
+            { label: t('Anadir imagen', 'Add image'), color: '#14b8a6', icon: 'I', muted: true },
+            { label: t('Anadir pagina', 'Add page'), color: '#14b8a6', icon: 'P', muted: true },
+            { label: t('Eliminar contenido', 'Remove content'), color: '#14b8a6', icon: 'X', muted: true },
+            { label: t('Resaltar texto', 'Highlight text'), color: '#14b8a6', icon: 'H', muted: true },
+            { label: t('Numeros de pagina', 'Page numbers'), color: '#14b8a6', icon: '#', muted: true },
+            { label: t('Marca de agua', 'Watermark'), color: '#14b8a6', icon: 'W', tool: 'watermark' },
+            { label: t('Comparar archivos PDF', 'Compare PDF files'), color: '#14b8a6', icon: 'C', muted: true },
           ],
         },
       ],
     },
     {
-      title: isSpanish ? 'Convertir a PDF' : 'Convert to PDF',
+      title: t('Convertir desde PDF', 'Convert from PDF'),
       groups: [
         {
           items: [
-            { label: isSpanish ? 'Word a PDF' : 'Word to PDF', color: '#22c55e', icon: 'W', muted: true },
-            { label: isSpanish ? 'Excel a PDF' : 'Excel to PDF', color: '#22c55e', icon: 'X', muted: true },
-            { label: isSpanish ? 'PowerPoint a PDF' : 'PowerPoint to PDF', color: '#f97316', icon: 'P', muted: true },
-            { label: isSpanish ? 'JPG a PDF' : 'JPG to PDF', color: '#eab308', icon: 'JPG', tool: 'scanner' },
-            { label: isSpanish ? 'PNG a PDF' : 'PNG to PDF', color: '#84cc16', icon: 'PNG', tool: 'scanner' },
-            { label: isSpanish ? 'HTML a PDF' : 'HTML to PDF', color: '#0ea5e9', icon: 'HTML', muted: true },
-            { label: isSpanish ? 'TXT a PDF' : 'TXT to PDF', color: '#3b82f6', icon: 'TXT', muted: true },
-            { label: isSpanish ? 'RTF a PDF' : 'RTF to PDF', color: '#3b82f6', icon: 'RTF', muted: true },
-            { label: isSpanish ? 'EPUB a PDF' : 'EPUB to PDF', color: '#22c55e', icon: 'EPUB', muted: true },
+            { label: t('PDF a Word', 'PDF to Word'), color: '#3b82f6', icon: 'W', muted: true },
+            { label: t('PDF a Excel', 'PDF to Excel'), color: '#22c55e', icon: 'X', muted: true },
+            { label: t('PDF a PowerPoint', 'PDF to PowerPoint'), color: '#f97316', icon: 'P', muted: true },
+            { label: t('PDF a JPG', 'PDF to JPG'), color: '#3b82f6', icon: 'JPG', muted: true },
+            { label: t('PDF a PNG', 'PDF to PNG'), color: '#3b82f6', icon: 'PNG', muted: true },
+            { label: t('PDF a HTML', 'PDF to HTML'), color: '#3b82f6', icon: 'HTML', muted: true },
+            { label: t('PDF a TXT', 'PDF to TXT'), color: '#3b82f6', icon: 'TXT', muted: true },
           ],
         },
       ],
     },
     {
-      title: isSpanish ? 'Firmar' : 'Sign',
+      title: t('Convertir a PDF', 'Convert to PDF'),
       groups: [
         {
           items: [
-            { label: isSpanish ? 'Firmar PDF' : 'Sign PDF', color: '#ef4444', icon: 'F', muted: true },
-            { label: isSpanish ? 'Solicitar firma' : 'Request signature', color: '#ef4444', icon: 'S', muted: true },
-            { label: isSpanish ? 'Verificar firma' : 'Verify signature', color: '#ef4444', icon: 'V', muted: true },
-            { label: isSpanish ? 'Certificado digital' : 'Digital certificate', color: '#ef4444', icon: 'C', muted: true },
-            { label: isSpanish ? 'Firma electronica' : 'Electronic signature', color: '#ef4444', icon: 'E', muted: true },
+            { label: t('Word a PDF', 'Word to PDF'), color: '#22c55e', icon: 'W', muted: true },
+            { label: t('Excel a PDF', 'Excel to PDF'), color: '#22c55e', icon: 'X', muted: true },
+            { label: t('PowerPoint a PDF', 'PowerPoint to PDF'), color: '#f97316', icon: 'P', muted: true },
+            { label: t('JPG a PDF', 'JPG to PDF'), color: '#eab308', icon: 'JPG', tool: 'scanner' },
+            { label: t('PNG a PDF', 'PNG to PDF'), color: '#84cc16', icon: 'PNG', tool: 'scanner' },
+            { label: t('HTML a PDF', 'HTML to PDF'), color: '#0ea5e9', icon: 'HTML', muted: true },
+            { label: t('TXT a PDF', 'TXT to PDF'), color: '#3b82f6', icon: 'TXT', muted: true },
+            { label: t('RTF a PDF', 'RTF to PDF'), color: '#3b82f6', icon: 'RTF', muted: true },
+            { label: t('EPUB a PDF', 'EPUB to PDF'), color: '#22c55e', icon: 'EPUB', muted: true },
           ],
         },
       ],
     },
     {
-      title: isSpanish ? 'Utilidades' : 'Utilities',
+      title: t('Firmar', 'Sign'),
       groups: [
         {
           items: [
-            { label: isSpanish ? 'Recortar PDF' : 'Crop PDF', color: '#64748b', icon: 'R', muted: true },
-            { label: isSpanish ? 'Medir PDF' : 'Measure PDF', color: '#64748b', icon: 'M', muted: true },
-            { label: isSpanish ? 'Imprimir PDF' : 'Print PDF', color: '#64748b', icon: 'P', muted: true },
-            { label: isSpanish ? 'Informacion PDF' : 'PDF information', color: '#64748b', icon: 'I', muted: true },
-            { label: isSpanish ? 'Optimizar PDF' : 'Optimize PDF', color: '#64748b', icon: 'O', muted: true },
-            { label: isSpanish ? 'Crear PDF/A' : 'Create PDF/A', color: '#64748b', icon: 'A', muted: true },
+            { label: t('Firmar PDF', 'Sign PDF'), color: '#ef4444', icon: 'F', muted: true },
+            { label: t('Solicitar firma', 'Request signature'), color: '#ef4444', icon: 'S', muted: true },
+            { label: t('Verificar firma', 'Verify signature'), color: '#ef4444', icon: 'V', muted: true },
+            { label: t('Certificado digital', 'Digital certificate'), color: '#ef4444', icon: 'C', muted: true },
+            { label: t('Firma electronica', 'Electronic signature'), color: '#ef4444', icon: 'E', muted: true },
+          ],
+        },
+      ],
+    },
+    {
+      title: t('Utilidades', 'Utilities'),
+      groups: [
+        {
+          items: [
+            { label: t('Recortar PDF', 'Crop PDF'), color: '#64748b', icon: 'R', muted: true },
+            { label: t('Medir PDF', 'Measure PDF'), color: '#64748b', icon: 'M', muted: true },
+            { label: t('Imprimir PDF', 'Print PDF'), color: '#64748b', icon: 'P', muted: true },
+            { label: t('Informacion PDF', 'PDF information'), color: '#64748b', icon: 'I', muted: true },
+            { label: t('Optimizar PDF', 'Optimize PDF'), color: '#64748b', icon: 'O', muted: true },
+            { label: t('Crear PDF/A', 'Create PDF/A'), color: '#64748b', icon: 'A', muted: true },
           ],
         },
       ],
@@ -1687,6 +1826,48 @@ function SiteFooter({
       desktop: 'Web version',
       language: 'English',
       made: 'Made for working with documents without friction.',
+    },
+    fr: {
+      tagline: 'PDF rapides, prives et simples.',
+      tools: 'Outils',
+      company: 'Entreprise',
+      product: 'Produit',
+      legal: 'Legal',
+      imagePdf: 'Image en PDF',
+      mergePdf: 'Fusionner PDF',
+      splitPdf: 'Diviser PDF',
+      watermarkPdf: 'Filigrane PDF',
+      about: 'Qui sommes-nous',
+      contact: 'Contact',
+      help: 'Aide',
+      privacy: 'Confidentialite',
+      terms: 'Conditions d utilisation',
+      security: 'Securite',
+      pricing: 'Prix',
+      desktop: 'Version web',
+      language: 'Francais',
+      made: 'Cree pour travailler avec des documents sans complication.',
+    },
+    pt: {
+      tagline: 'PDFs rapidos, privados e simples.',
+      tools: 'Ferramentas',
+      company: 'Empresa',
+      product: 'Produto',
+      legal: 'Legal',
+      imagePdf: 'Imagem para PDF',
+      mergePdf: 'Unir PDF',
+      splitPdf: 'Dividir PDF',
+      watermarkPdf: 'Marca d agua PDF',
+      about: 'Quem somos',
+      contact: 'Contato',
+      help: 'Ajuda',
+      privacy: 'Privacidade',
+      terms: 'Termos de uso',
+      security: 'Seguranca',
+      pricing: 'Preco',
+      desktop: 'Versao web',
+      language: 'Portugues',
+      made: 'Feito para trabalhar com documentos sem complicacoes.',
     },
   }
   const content =
@@ -2111,8 +2292,101 @@ function InfoModal({
         ],
       },
     },
+    fr: {
+      about: {
+        icon: <ShieldCheck size={22} />,
+        title: 'Qui sommes-nous',
+        body: [
+          'SpartaPDF est un outil web concu pour travailler avec des PDF rapidement, simplement et de facon privee.',
+          'L objectif est d offrir des outils pratiques pour convertir des images, fusionner, diviser, pivoter et marquer des PDF sans serveurs ni comptes utilisateur.',
+        ],
+      },
+      contact: {
+        icon: <Mail size={22} />,
+        title: 'Contact',
+        body: [
+          'Si vous avez une question, une suggestion ou si vous avez trouve un probleme, vous pouvez envoyer un message depuis ce formulaire.',
+          'Le formulaire ne stocke pas vos donnees dans SpartaPDF: il prepare un email dans votre application de messagerie pour que vous puissiez le verifier avant l envoi.',
+        ],
+      },
+      privacy: {
+        icon: <Lock size={22} />,
+        title: 'Confidentialite',
+        body: [
+          'SpartaPDF est concu pour travailler avec vos documents directement dans le navigateur lorsque l outil le permet.',
+          'Les fichiers selectionnes sont traites sur votre appareil et ne sont pas envoyes a un serveur SpartaPDF pour creer, fusionner, diviser, pivoter ou modifier des PDF.',
+          'Lorsque vous fermez ou rechargez la page, les fichiers charges ne sont plus disponibles dans la session actuelle.',
+          'Nous utilisons Google Tag Manager et des outils d analyse pour connaitre les visites, les pages utilisees et les performances generales du site. Ces mesures nous aident a ameliorer SpartaPDF et ne servent pas a traiter vos documents.',
+        ],
+      },
+      terms: {
+        icon: <Stamp size={22} />,
+        title: 'Conditions d utilisation',
+        body: [
+          'SpartaPDF propose des outils gratuits pour travailler avec des fichiers PDF et des images depuis le navigateur.',
+          'Vous devez utiliser le site uniquement avec des fichiers que vous avez le droit d utiliser, en evitant tout contenu illegal, nuisible ou portant atteinte aux droits de tiers.',
+          'Meme si nous travaillons pour maintenir les outils fiables, nous ne pouvons pas garantir que le resultat convienne a tous les usages professionnels, juridiques ou administratifs. Verifiez toujours le document final avant de le partager.',
+          'SpartaPDF peut modifier, ameliorer ou retirer des fonctions afin de maintenir la securite, la stabilite et la qualite du service.',
+        ],
+      },
+      help: {
+        icon: <HelpCircle size={22} />,
+        title: 'Aide',
+        body: [
+          'Choisissez un outil, ajoutez ou deposez vos fichiers, puis appuyez sur le bouton de generation lorsqu il est disponible.',
+          'Pour les plages de pages, vous pouvez saisir des valeurs comme 1,3,5-8. Pour fusionner des PDF, l ordre de la liste sera celui du fichier final.',
+        ],
+      },
+    },
+    pt: {
+      about: {
+        icon: <ShieldCheck size={22} />,
+        title: 'Quem somos',
+        body: [
+          'SpartaPDF e uma ferramenta web criada para trabalhar com PDFs de forma rapida, simples e privada.',
+          'A ideia e oferecer utilidades praticas para converter imagens, unir, dividir, rodar e marcar PDFs sem depender de servidores nem contas de usuario.',
+        ],
+      },
+      contact: {
+        icon: <Mail size={22} />,
+        title: 'Contato',
+        body: [
+          'Se voce tiver uma duvida, sugestao ou encontrar um problema, pode enviar uma mensagem por este formulario.',
+          'O formulario nao guarda seus dados no SpartaPDF: ele prepara um email no seu aplicativo para que voce possa revisar antes de enviar.',
+        ],
+      },
+      privacy: {
+        icon: <Lock size={22} />,
+        title: 'Privacidade',
+        body: [
+          'SpartaPDF foi pensado para trabalhar com seus documentos diretamente no navegador sempre que a ferramenta permitir.',
+          'Os arquivos selecionados sao processados no seu dispositivo e nao sao enviados para um servidor do SpartaPDF para criar, unir, dividir, rodar ou modificar PDFs.',
+          'Ao fechar ou recarregar a pagina, os arquivos carregados deixam de estar disponiveis na sessao atual.',
+          'Usamos Google Tag Manager e ferramentas de analise para conhecer visitas, paginas usadas e desempenho geral do site. Essas metricas ajudam a melhorar o SpartaPDF e nao sao usadas para processar seus documentos.',
+        ],
+      },
+      terms: {
+        icon: <Stamp size={22} />,
+        title: 'Termos de uso',
+        body: [
+          'SpartaPDF oferece ferramentas gratuitas para trabalhar com arquivos PDF e imagens no navegador.',
+          'Voce deve usar o site apenas com arquivos sobre os quais tenha direito de uso, evitando conteudo ilegal, prejudicial ou que viole direitos de terceiros.',
+          'Embora trabalhemos para manter as ferramentas funcionando corretamente, nao podemos garantir que o resultado seja adequado para todos os usos profissionais, legais ou administrativos. Revise sempre o documento final antes de compartilhar.',
+          'SpartaPDF pode alterar, melhorar ou retirar funcoes para manter a seguranca, estabilidade e qualidade do servico.',
+        ],
+      },
+      help: {
+        icon: <HelpCircle size={22} />,
+        title: 'Ajuda',
+        body: [
+          'Escolha uma ferramenta, envie ou arraste seus arquivos e pressione o botao de gerar quando estiver disponivel.',
+          'Para intervalos de paginas voce pode escrever valores como 1,3,5-8. Ao unir PDFs, a ordem da lista sera a ordem do arquivo final.',
+        ],
+      },
+    },
   }
   const item = ((content as Partial<Record<Language, typeof content.en>>)[language] ?? content.en)[panel]
+  const text = getUiText(language)
 
   function handleContactSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -2145,7 +2419,7 @@ function InfoModal({
             className="icon-button"
             type="button"
             onClick={onClose}
-            aria-label={language === 'es' ? 'Cerrar' : 'Close'}
+            aria-label={languageText(text, 'Cerrar', 'Close')}
           >
             <X size={18} />
           </button>
@@ -2157,7 +2431,7 @@ function InfoModal({
           {panel === 'contact' && (
             <form className="contact-form" onSubmit={handleContactSubmit}>
               <label>
-                <span>{language === 'es' ? 'Nombre' : 'Name'}</span>
+                <span>{languageText(text, 'Nombre', 'Name')}</span>
                 <input name="name" type="text" autoComplete="name" required />
               </label>
               <label>
@@ -2165,16 +2439,16 @@ function InfoModal({
                 <input name="email" type="email" autoComplete="email" required />
               </label>
               <label>
-                <span>{language === 'es' ? 'Asunto' : 'Subject'}</span>
+                <span>{languageText(text, 'Asunto', 'Subject')}</span>
                 <input name="subject" type="text" required />
               </label>
               <label>
-                <span>{language === 'es' ? 'Mensaje' : 'Message'}</span>
+                <span>{languageText(text, 'Mensaje', 'Message')}</span>
                 <textarea name="message" rows={5} required />
               </label>
               <button className="primary-button" type="submit">
                 <Mail size={18} />
-                {language === 'es' ? 'Preparar email' : 'Prepare email'}
+                {languageText(text, 'Preparar email', 'Prepare email')}
               </button>
             </form>
           )}
@@ -2195,16 +2469,22 @@ function ScanOverlay({
   preparingMessage: string
   previewUrl?: string
 }) {
-  const steps =
-    language === 'es'
-      ? ['Detectando bordes', 'Enderezando documento', 'Mejorando iluminacion', 'Generando PDF']
-      : ['Detecting borders', 'Straightening document', 'Improving lighting', 'Creating PDF']
+  const text = getUiText(language)
+  const stepsByLanguage: Record<Language, string[]> = {
+    es: ['Detectando bordes', 'Enderezando documento', 'Mejorando iluminacion', 'Generando PDF'],
+    en: ['Detecting borders', 'Straightening document', 'Improving lighting', 'Creating PDF'],
+    fr: ['Detection des bords', 'Redressement du document', 'Amelioration de l eclairage', 'Creation du PDF'],
+    it: ['Rilevamento bordi', 'Raddrizzamento documento', 'Miglioramento illuminazione', 'Creazione PDF'],
+    de: ['Rander erkennen', 'Dokument ausrichten', 'Beleuchtung verbessern', 'PDF erstellen'],
+    pt: ['Detectando bordas', 'Endireitando documento', 'Melhorando iluminacao', 'Criando PDF'],
+  }
+  const steps = stepsByLanguage[language]
 
   return (
     <div className="scan-overlay" role="status" aria-live="polite">
       <div className="scan-card">
         <SpartaScanAnimation
-          label={language === 'es' ? 'Escaneando y creando PDF...' : 'Scanning and creating PDF...'}
+          label={languageText(text, 'Escaneando y creando PDF...', 'Scanning and creating PDF...')}
         />
         <div className={`scan-paper ${previewUrl ? 'has-preview' : ''}`}>
           {previewUrl && (
@@ -2744,7 +3024,7 @@ function CropModal({
             <h2>{cropTitle}</h2>
             <p>{cropHelp}</p>
           </div>
-          <button className="icon-button" type="button" onClick={onClose} aria-label="Cerrar">
+          <button className="icon-button" type="button" onClick={onClose} aria-label={languageText(text, 'Cerrar', 'Close')}>
             <X size={18} />
           </button>
         </header>
@@ -5084,8 +5364,152 @@ function getHowToSteps(language: Language) {
   return steps[language]
 }
 
+const quickTranslations: Record<string, Partial<Record<Language, string>>> = {
+  'Todas las herramientas para tus PDF': {
+    fr: 'Tous les outils pour vos PDF',
+    pt: 'Todas as ferramentas para seus PDF',
+  },
+  'Accesos rapidos a las herramientas disponibles y a las proximas funciones de SpartaPDF.': {
+    fr: 'Acces rapide aux outils disponibles et aux prochaines fonctions de SpartaPDF.',
+    pt: 'Acesso rapido as ferramentas disponiveis e aos proximos recursos do SpartaPDF.',
+  },
+  Proximamente: { fr: 'Bientot', pt: 'Em breve' },
+  Convertir: { fr: 'Convertir', pt: 'Converter' },
+  'Imagen a PDF': { fr: 'Image en PDF', pt: 'Imagem para PDF' },
+  'Convertir a PDF': { fr: 'Convertir en PDF', pt: 'Converter para PDF' },
+  'Conversor de PDF': { fr: 'Convertisseur PDF', pt: 'Conversor de PDF' },
+  'PDF a Word': { fr: 'PDF en Word', pt: 'PDF para Word' },
+  'PDF a PowerPoint': { fr: 'PDF en PowerPoint', pt: 'PDF para PowerPoint' },
+  'PDF a Excel': { fr: 'PDF en Excel', pt: 'PDF para Excel' },
+  'PDF a JPG': { fr: 'PDF en JPG', pt: 'PDF para JPG' },
+  'PDF a TXT': { fr: 'PDF en TXT', pt: 'PDF para TXT' },
+  'PDF a HTML': { fr: 'PDF en HTML', pt: 'PDF para HTML' },
+  Organizar: { fr: 'Organiser', pt: 'Organizar' },
+  'Unir PDF': { fr: 'Fusionner PDF', pt: 'Unir PDF' },
+  'Dividir PDF': { fr: 'Diviser PDF', pt: 'Dividir PDF' },
+  'Eliminar paginas': { fr: 'Supprimer des pages', pt: 'Eliminar paginas' },
+  'Extraer paginas': { fr: 'Extraire des pages', pt: 'Extrair paginas' },
+  'Rotar PDF': { fr: 'Pivoter PDF', pt: 'Rodar PDF' },
+  'Ordenar PDF': { fr: 'Reorganiser PDF', pt: 'Ordenar PDF' },
+  'Organizar paginas': { fr: 'Organiser les pages', pt: 'Organizar paginas' },
+  Seguridad: { fr: 'Securite', pt: 'Seguranca' },
+  'Proteger PDF': { fr: 'Proteger PDF', pt: 'Proteger PDF' },
+  'Desbloquear PDF': { fr: 'Debloquer PDF', pt: 'Desbloquear PDF' },
+  'Cifrar PDF': { fr: 'Chiffrer PDF', pt: 'Criptografar PDF' },
+  'Descifrar PDF': { fr: 'Dechiffrer PDF', pt: 'Descriptografar PDF' },
+  'Verificar firma': { fr: 'Verifier la signature', pt: 'Verificar assinatura' },
+  'Borrar datos': { fr: 'Effacer les donnees', pt: 'Apagar dados' },
+  Editar: { fr: 'Modifier', pt: 'Editar' },
+  'Editar PDF': { fr: 'Modifier PDF', pt: 'Editar PDF' },
+  'Anadir texto': { fr: 'Ajouter du texte', pt: 'Adicionar texto' },
+  'Anadir imagen': { fr: 'Ajouter une image', pt: 'Adicionar imagem' },
+  'Anadir pagina': { fr: 'Ajouter une page', pt: 'Adicionar pagina' },
+  'Eliminar contenido': { fr: 'Supprimer du contenu', pt: 'Eliminar conteudo' },
+  'Resaltar texto': { fr: 'Surligner du texte', pt: 'Realcar texto' },
+  'Numeros de pagina': { fr: 'Numeros de page', pt: 'Numeros de pagina' },
+  'Marca de agua': { fr: 'Filigrane', pt: 'Marca d agua' },
+  'Comparar archivos PDF': { fr: 'Comparer des fichiers PDF', pt: 'Comparar arquivos PDF' },
+  'Convertir desde PDF': { fr: 'Convertir depuis PDF', pt: 'Converter de PDF' },
+  'PDF a PNG': { fr: 'PDF en PNG', pt: 'PDF para PNG' },
+  'Word a PDF': { fr: 'Word en PDF', pt: 'Word para PDF' },
+  'Excel a PDF': { fr: 'Excel en PDF', pt: 'Excel para PDF' },
+  'PowerPoint a PDF': { fr: 'PowerPoint en PDF', pt: 'PowerPoint para PDF' },
+  'JPG a PDF': { fr: 'JPG en PDF', pt: 'JPG para PDF' },
+  'PNG a PDF': { fr: 'PNG en PDF', pt: 'PNG para PDF' },
+  'HTML a PDF': { fr: 'HTML en PDF', pt: 'HTML para PDF' },
+  'TXT a PDF': { fr: 'TXT en PDF', pt: 'TXT para PDF' },
+  'RTF a PDF': { fr: 'RTF en PDF', pt: 'RTF para PDF' },
+  'EPUB a PDF': { fr: 'EPUB en PDF', pt: 'EPUB para PDF' },
+  Firmar: { fr: 'Signer', pt: 'Assinar' },
+  'Firmar PDF': { fr: 'Signer PDF', pt: 'Assinar PDF' },
+  'Solicitar firma': { fr: 'Demander une signature', pt: 'Solicitar assinatura' },
+  'Certificado digital': { fr: 'Certificat numerique', pt: 'Certificado digital' },
+  'Firma electronica': { fr: 'Signature electronique', pt: 'Assinatura eletronica' },
+  Utilidades: { fr: 'Utilitaires', pt: 'Utilidades' },
+  'Recortar PDF': { fr: 'Recadrer PDF', pt: 'Recortar PDF' },
+  'Medir PDF': { fr: 'Mesurer PDF', pt: 'Medir PDF' },
+  'Imprimir PDF': { fr: 'Imprimer PDF', pt: 'Imprimir PDF' },
+  'Informacion PDF': { fr: 'Informations PDF', pt: 'Informacoes PDF' },
+  'Optimizar PDF': { fr: 'Optimiser PDF', pt: 'Otimizar PDF' },
+  'Crear PDF/A': { fr: 'Creer PDF/A', pt: 'Criar PDF/A' },
+  Cerrar: { fr: 'Fermer', pt: 'Fechar' },
+  Nombre: { fr: 'Nom', pt: 'Nome' },
+  Asunto: { fr: 'Sujet', pt: 'Assunto' },
+  Mensaje: { fr: 'Message', pt: 'Mensagem' },
+  'Preparar email': { fr: 'Preparer l email', pt: 'Preparar email' },
+  'Escaneando y creando PDF...': {
+    fr: 'Numerisation et creation du PDF...',
+    pt: 'Escaneando e criando PDF...',
+  },
+  'Subir imagenes': { fr: 'Ajouter des images', pt: 'Enviar imagens' },
+  'JPG, PNG o WebP. El PDF se crea en tu navegador.': {
+    fr: 'JPG, PNG ou WebP. Le PDF est cree dans votre navigateur.',
+    pt: 'JPG, PNG ou WebP. O PDF e criado no seu navegador.',
+  },
+  'Subir PDFs': { fr: 'Ajouter des PDF', pt: 'Enviar PDFs' },
+  'Subir PDF': { fr: 'Ajouter un PDF', pt: 'Enviar PDF' },
+  'El orden de la lista sera el orden del PDF final.': {
+    fr: 'L ordre de la liste sera celui du PDF final.',
+    pt: 'A ordem da lista sera a ordem do PDF final.',
+  },
+  'Usaremos el primer PDF cargado para esta herramienta.': {
+    fr: 'Le premier PDF charge sera utilise pour cet outil.',
+    pt: 'Usaremos o primeiro PDF carregado nesta ferramenta.',
+  },
+  Ajustes: { fr: 'Parametres', pt: 'Configuracoes' },
+  'Paginas a extraer': { fr: 'Pages a extraire', pt: 'Paginas para extrair' },
+  'Paginas a eliminar': { fr: 'Pages a supprimer', pt: 'Paginas para eliminar' },
+  'Ejemplo: 1,3,5-8': { fr: 'Exemple: 1,3,5-8', pt: 'Exemplo: 1,3,5-8' },
+  Rotacion: { fr: 'Rotation', pt: 'Rotacao' },
+  '90 grados': { fr: '90 degres', pt: '90 graus' },
+  '180 grados': { fr: '180 degres', pt: '180 graus' },
+  '270 grados': { fr: '270 degres', pt: '270 graus' },
+  'Texto de marca': { fr: 'Texte du filigrane', pt: 'Texto da marca d agua' },
+  'Seleccionar imagenes': { fr: 'Selectionner des images', pt: 'Selecionar imagens' },
+  'Subir pagina': { fr: 'Monter la page', pt: 'Subir pagina' },
+  'Bajar pagina': { fr: 'Descendre la page', pt: 'Descer pagina' },
+  Girar: { fr: 'Pivoter', pt: 'Rodar' },
+  Recortar: { fr: 'Recadrer', pt: 'Recortar' },
+  Eliminar: { fr: 'Supprimer', pt: 'Eliminar' },
+  'Recortar imagen': { fr: 'Recadrer l image', pt: 'Recortar imagem' },
+  'Ajusta el marco para dejar solo la parte que quieres convertir a PDF.': {
+    fr: 'Ajustez le cadre pour ne garder que la zone a convertir en PDF.',
+    pt: 'Ajuste o quadro para deixar apenas a parte que deseja converter em PDF.',
+  },
+  'Quitar recorte': { fr: 'Retirer le recadrage', pt: 'Remover recorte' },
+  Cancelar: { fr: 'Annuler', pt: 'Cancelar' },
+  'Guardar recorte': { fr: 'Enregistrer le recadrage', pt: 'Salvar recorte' },
+  'Seleccionar PDF': { fr: 'Selectionner un PDF', pt: 'Selecionar PDF' },
+  'Quitar PDF': { fr: 'Retirer le PDF', pt: 'Remover PDF' },
+  'No se pudo leer': { fr: 'Impossible de lire', pt: 'Nao foi possivel ler' },
+  'No puedes eliminar todas las paginas.': {
+    fr: 'Vous ne pouvez pas supprimer toutes les pages.',
+    pt: 'Voce nao pode eliminar todas as paginas.',
+  },
+}
+
+function getUiLanguage(text: UiText): Language {
+  if (text.activeTool === uiText.es.activeTool) return 'es'
+  if (text.activeTool === uiText.fr.activeTool) return 'fr'
+  if (text.activeTool === uiText.pt.activeTool) return 'pt'
+  return 'en'
+}
+
 function languageText(text: UiText, spanish: string, english: string) {
-  return text.activeTool === uiText.es.activeTool ? spanish : english
+  const language = getUiLanguage(text)
+  if (language === 'es') return spanish
+  if (language === 'fr' || language === 'pt') {
+    if (spanish.startsWith('Este PDF tiene ')) {
+      const pages = spanish.match(/\d+/)?.[0] ?? ''
+      return language === 'fr' ? `Ce PDF contient ${pages} pages.` : `Este PDF tem ${pages} paginas.`
+    }
+    if (spanish.startsWith('Arrastra para ')) {
+      const toolName = spanish.replace('Arrastra para ', '')
+      return language === 'fr' ? `Deposez votre fichier pour ${toolName}` : `Arraste o arquivo para ${toolName}`
+    }
+    return quickTranslations[spanish]?.[language] ?? english
+  }
+  return english
 }
 
 export default App
